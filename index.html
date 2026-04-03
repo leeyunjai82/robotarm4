@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-Axis Robot Arm Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --panel: #111318;
+    --panel2: #181c24;
+    --border: #252b38;
+    --accent: #00e5ff;
+    --accent2: #f9c300;
+    --accent3: #ff4d6d;
+    --text: #c8d0e0;
+    --muted: #4a5568;
+    --grid: #161b26;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  header .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  header .tag {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  header .status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #00e5a0;
+    box-shadow: 0 0 6px #00e5a0;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .sidebar {
+    width: 300px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .section {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .param-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .param-row label {
+    font-size: 11px;
+    color: var(--muted);
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .param-row input[type="number"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .param-row input[type="number"]:focus {
+    border-color: var(--accent);
+  }
+  .unit {
+    font-size: 10px;
+    color: var(--muted);
+    width: 20px;
+  }
+
+  .btn-gen {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all .2s;
+  }
+  .btn-gen:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* Motor sliders */
+  .motor-block {
+    margin-bottom: 14px;
+  }
+  .motor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .motor-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .motor-val {
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 52px;
+    text-align: right;
+  }
+  .motor-desc {
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 6px var(--accent);
+    transition: box-shadow .2s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .slider-j0::-webkit-slider-thumb { background: #00e5ff; box-shadow: 0 0 6px #00e5ff; }
+  .slider-j1::-webkit-slider-thumb { background: #f9c300; box-shadow: 0 0 6px #f9c300; }
+  .slider-j2::-webkit-slider-thumb { background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
+  .slider-j3::-webkit-slider-thumb { background: #ff4d6d; box-shadow: 0 0 6px #ff4d6d; }
+
+  /* FK output */
+  .fk-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .fk-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 10px;
+  }
+  .fk-item.full { grid-column: 1 / -1; }
+  .fk-label {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .fk-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .fk-value.amber { color: var(--accent2); }
+  .fk-value.red { color: var(--accent3); }
+
+  /* RIGHT - 3D View */
+  .viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  #canvas { display: block; width: 100%; height: 100%; }
+
+  .hud {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 9px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.8;
+    pointer-events: none;
+  }
+  .hud span { color: var(--text); }
+
+  .axis-legend {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    display: flex;
+    gap: 12px;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .ax { display: flex; align-items: center; gap: 4px; }
+  .ax-dot { width: 8px; height: 3px; border-radius: 1px; }
+
+  /* scrollbar */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* URDF area */
+  .urdf-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px;
+    font-size: 9px;
+    color: var(--muted);
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre;
+    line-height: 1.5;
+    display: none;
+  }
+  .urdf-box.visible { display: block; }
+
+  .gripper-line {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 9px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RobotArm</div>
+  <div class="tag">4-DOF</div>
+  <div class="tag">FORWARD KINEMATICS</div>
+  <div class="status">
+    <div class="dot"></div>
+    <span>SIMULATION ACTIVE</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- LEFT PANEL -->
+  <div class="sidebar">
+
+    <!-- Params -->
+    <div class="section">
+      <div class="section-title">링크 파라미터</div>
+      <div class="param-row">
+        <label>L1 (Arm 1)</label>
+        <input type="number" id="L1" value="150" min="50" max="500" step="10">
+        <span class="unit">mm</span>
+      </div>
+      <div class="param-row">
+        <label>L2 (Arm 2)</label>
+        <input type="number" id="L2" value="120" min="50" max="500" step="10">
+        <span class="unit">mm</span>
+      </div>
+      <div class="param-row">
+        <label>Base H</label>
+        <input type="number" id="BH" value="80" min="20" max="300" step="10">
+        <span class="unit">mm</span>
+      </div>
+      <button class="btn-gen" id="btnGen">▶ URDF 생성 + 뷰 업데이트</button>
+    </div>
+
+    <!-- Motors -->
+    <div class="section">
+      <div class="section-title">모터 제어</div>
+
+      <div class="motor-block">
+        <div class="motor-header">
+          <span class="motor-name">J0 — Base Rotation</span>
+          <span class="motor-val" id="v0">0°</span>
+        </div>
+        <div class="motor-desc">Z축 회전 (±180°)</div>
+        <input type="range" class="slider-j0" id="j0" min="-180" max="180" value="0" step="1">
+      </div>
+
+      <div class="motor-block">
+        <div class="motor-header">
+          <span class="motor-name">J1 — Arm 1</span>
+          <span class="motor-val" id="v1">0°</span>
+        </div>
+        <div class="motor-desc">Y축 회전 (−90° ~ +90°)</div>
+        <input type="range" class="slider-j1" id="j1" min="-90" max="90" value="0" step="1">
+      </div>
+
+      <div class="motor-block">
+        <div class="motor-header">
+          <span class="motor-name">J2 — Arm 2</span>
+          <span class="motor-val" id="v2">0°</span>
+        </div>
+        <div class="motor-desc">Y축 회전 (−135° ~ +135°)</div>
+        <input type="range" class="slider-j2" id="j2" min="-135" max="135" value="0" step="1">
+      </div>
+
+      <div class="motor-block">
+        <div class="motor-header">
+          <span class="motor-name">J3 — Gripper</span>
+          <span class="motor-val" id="v3">0%</span>
+        </div>
+        <div class="motor-desc">그리퍼 개폐 (0=닫힘 / 100=열림)</div>
+        <input type="range" class="slider-j3" id="j3" min="0" max="100" value="0" step="1">
+      </div>
+    </div>
+
+    <!-- FK Output -->
+    <div class="section">
+      <div class="section-title">순기구학 결과 (Gripper)</div>
+      <div class="fk-grid">
+        <div class="fk-item">
+          <div class="fk-label">X</div>
+          <div class="fk-value" id="fk-x">0.0</div>
+        </div>
+        <div class="fk-item">
+          <div class="fk-label">Y</div>
+          <div class="fk-value" id="fk-y">0.0</div>
+        </div>
+        <div class="fk-item">
+          <div class="fk-label">Z</div>
+          <div class="fk-value amber" id="fk-z">0.0</div>
+        </div>
+        <div class="fk-item">
+          <div class="fk-label">원점 거리</div>
+          <div class="fk-value amber" id="fk-d">0.0</div>
+        </div>
+        <div class="fk-item full">
+          <div class="fk-label">Base Joint 기준 거리 (수평)</div>
+          <div class="fk-value red" id="fk-r">0.0</div>
+        </div>
+        <div class="fk-item full">
+          <div class="fk-label">그리퍼 상태</div>
+          <div class="fk-value" id="fk-grip" style="color:#ff4d6d">CLOSED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- URDF -->
+    <div class="section">
+      <div class="section-title">URDF 미리보기</div>
+      <pre class="urdf-box" id="urdfBox"></pre>
+      <button class="btn-gen" id="btnDownload" style="margin-top:6px;display:none;">⬇ URDF 다운로드</button>
+    </div>
+
+  </div>
+
+  <!-- 3D VIEWPORT -->
+  <div class="viewport">
+    <canvas id="canvas"></canvas>
+    <div class="hud">
+      드래그: 회전 &nbsp;|&nbsp; 휠: 줌<br>
+      <span>Shift+드래그: 이동</span>
+    </div>
+    <div class="axis-legend">
+      <div class="ax"><div class="ax-dot" style="background:#ff4444"></div>X</div>
+      <div class="ax"><div class="ax-dot" style="background:#44ff88"></div>Y</div>
+      <div class="ax"><div class="ax-dot" style="background:#4488ff"></div>Z</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── THREE.JS SETUP ─────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0c10);
+scene.fog = new THREE.FogExp2(0x0a0c10, 0.0008);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 5000);
+camera.position.set(400, 300, 400);
+camera.lookAt(0, 0, 100);
+
+// Lights
+const ambient = new THREE.AmbientLight(0x223344, 1.5);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0x88bbff, 1.2);
+dirLight.position.set(300, 400, 200);
+dirLight.castShadow = true;
+scene.add(dirLight);
+const pointLight = new THREE.PointLight(0x00e5ff, 0.8, 1000);
+pointLight.position.set(-200, 200, 300);
+scene.add(pointLight);
+
+// Grid
+const gridHelper = new THREE.GridHelper(800, 20, 0x1a2030, 0x141820);
+scene.add(gridHelper);
+
+// Axes helper (small)
+const axesHelper = new THREE.AxesHelper(60);
+axesHelper.position.set(-350, 0, -350);
+scene.add(axesHelper);
+
+// ─── MATERIALS ──────────────────────────────────────────────────────────────
+const matBase    = new THREE.MeshPhongMaterial({ color: 0x1a2540, shininess: 80, specular: 0x334466 });
+const matArm1    = new THREE.MeshPhongMaterial({ color: 0x00e5ff, shininess: 120, specular: 0x88eeff, transparent: true, opacity: 0.9 });
+const matArm2    = new THREE.MeshPhongMaterial({ color: 0xa78bfa, shininess: 120, specular: 0xccbbff, transparent: true, opacity: 0.9 });
+const matGripper = new THREE.MeshPhongMaterial({ color: 0xff4d6d, shininess: 120, specular: 0xff88aa });
+const matJoint   = new THREE.MeshPhongMaterial({ color: 0xf9c300, shininess: 200, specular: 0xffee88 });
+const matShadow  = new THREE.MeshPhongMaterial({ color: 0x0d1218, shininess: 10 });
+const matTrace   = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.3 });
+
+// ─── ROBOT OBJECTS ──────────────────────────────────────────────────────────
+let robotGroup = new THREE.Group();
+scene.add(robotGroup);
+
+let baseObj, arm1Obj, arm2Obj, gripperObj;
+let j0Group, j1Group, j2Group, j3Group;
+let jointSpheres = [];
+
+let tracePoints = [];
+let traceLine = null;
+
+// FK line from base to gripper
+let fkLine = null;
+
+function buildRobot(L1, L2, BH) {
+  // clear
+  robotGroup.clear();
+  jointSpheres = [];
+  tracePoints = [];
+  if (traceLine) { scene.remove(traceLine); traceLine = null; }
+  if (fkLine) { scene.remove(fkLine); fkLine = null; }
+
+  const scale = 1; // mm
+
+  // ── Base cylinder
+  const baseGeo = new THREE.CylinderGeometry(40, 50, BH, 24);
+  baseObj = new THREE.Mesh(baseGeo, matBase);
+  baseObj.position.y = BH / 2;
+  baseObj.castShadow = true;
+  robotGroup.add(baseObj);
+
+  // Base top plate
+  const topGeo = new THREE.CylinderGeometry(35, 35, 8, 24);
+  const topMesh = new THREE.Mesh(topGeo, matShadow);
+  topMesh.position.y = BH + 4;
+  robotGroup.add(topMesh);
+
+  // ── J0 group (base rotation, at top of base)
+  j0Group = new THREE.Group();
+  j0Group.position.y = BH;
+  robotGroup.add(j0Group);
+
+    // Joint sphere J0
+    const jsGeo0 = new THREE.SphereGeometry(12, 16, 16);
+    const js0 = new THREE.Mesh(jsGeo0, matJoint);
+    j0Group.add(js0);
+    jointSpheres.push(js0);
+
+    // ── J1 group (arm1 rotation)
+    j1Group = new THREE.Group();
+    j0Group.add(j1Group);
+
+      // Arm1 - box link
+      const arm1Len = L1;
+      const arm1Geo = new THREE.BoxGeometry(18, arm1Len, 14);
+      arm1Obj = new THREE.Mesh(arm1Geo, matArm1);
+      arm1Obj.position.y = arm1Len / 2;
+      arm1Obj.castShadow = true;
+      j1Group.add(arm1Obj);
+
+      // Arm1 edge highlight
+      const edgesGeo1 = new THREE.EdgesGeometry(arm1Geo);
+      const edgesMat1 = new THREE.LineBasicMaterial({ color: 0x44eeff, transparent: true, opacity: 0.5 });
+      const edges1 = new THREE.LineSegments(edgesGeo1, edgesMat1);
+      edges1.position.y = arm1Len / 2;
+      j1Group.add(edges1);
+
+      // ── J2 group (arm2 rotation) at end of arm1
+      j2Group = new THREE.Group();
+      j2Group.position.y = arm1Len;
+      j1Group.add(j2Group);
+
+        // Joint sphere J2
+        const jsGeo2 = new THREE.SphereGeometry(10, 16, 16);
+        const js2 = new THREE.Mesh(jsGeo2, matJoint);
+        j2Group.add(js2);
+        jointSpheres.push(js2);
+
+        // Arm2 - box link
+        const arm2Len = L2;
+        const arm2Geo = new THREE.BoxGeometry(14, arm2Len, 11);
+        arm2Obj = new THREE.Mesh(arm2Geo, matArm2);
+        arm2Obj.position.y = arm2Len / 2;
+        arm2Obj.castShadow = true;
+        j2Group.add(arm2Obj);
+
+        const edgesGeo2 = new THREE.EdgesGeometry(arm2Geo);
+        const edgesMat2 = new THREE.LineBasicMaterial({ color: 0xcc99ff, transparent: true, opacity: 0.5 });
+        const edges2 = new THREE.LineSegments(edgesGeo2, edgesMat2);
+        edges2.position.y = arm2Len / 2;
+        j2Group.add(edges2);
+
+        // ── J3 group (gripper) at end of arm2
+        j3Group = new THREE.Group();
+        j3Group.position.y = arm2Len;
+        j2Group.add(j3Group);
+
+          // Joint sphere J3
+          const jsGeo3 = new THREE.SphereGeometry(8, 16, 16);
+          const js3 = new THREE.Mesh(jsGeo3, matJoint);
+          j3Group.add(js3);
+          jointSpheres.push(js3);
+
+          // Gripper palm
+          const gripBody = new THREE.Mesh(new THREE.BoxGeometry(30, 10, 12), matGripper);
+          gripBody.position.y = 5;
+          j3Group.add(gripBody);
+
+          // Left finger group
+          window.gripFingerL = new THREE.Group();
+          window.gripFingerL.position.set(-8, 10, 0);
+          const fLBody = new THREE.Mesh(new THREE.BoxGeometry(6, 26, 9), matGripper);
+          fLBody.position.y = 13;
+          window.gripFingerL.add(fLBody);
+          const fLTip = new THREE.Mesh(new THREE.BoxGeometry(6, 10, 9), matGripper);
+          fLTip.position.set(3, 31, 0);
+          window.gripFingerL.add(fLTip);
+          j3Group.add(window.gripFingerL);
+
+          // Right finger group
+          window.gripFingerR = new THREE.Group();
+          window.gripFingerR.position.set(8, 10, 0);
+          const fRBody = new THREE.Mesh(new THREE.BoxGeometry(6, 26, 9), matGripper);
+          fRBody.position.y = 13;
+          window.gripFingerR.add(fRBody);
+          const fRTip = new THREE.Mesh(new THREE.BoxGeometry(6, 10, 9), matGripper);
+          fRTip.position.set(-3, 31, 0);
+          window.gripFingerR.add(fRTip);
+          j3Group.add(window.gripFingerR);
+
+          // Tip marker
+          const tipGeo = new THREE.SphereGeometry(3, 8, 8);
+          const tipMat = new THREE.MeshPhongMaterial({ color: 0xff4d6d, emissive: 0xff1144, emissiveIntensity: 0.6 });
+          gripperObj = new THREE.Mesh(tipGeo, tipMat);
+          gripperObj.position.y = 45;
+          j3Group.add(gripperObj);
+
+  // Shadow plane
+  const shadowGeo = new THREE.CircleGeometry(80, 32);
+  const shadowMesh = new THREE.Mesh(shadowGeo, new THREE.MeshPhongMaterial({ color: 0x060810, transparent: true, opacity: 0.4 }));
+  shadowMesh.rotation.x = -Math.PI / 2;
+  shadowMesh.position.y = 0.5;
+  robotGroup.add(shadowMesh);
+}
+
+// ─── FK CALCULATION ─────────────────────────────────────────────────────────
+function forwardKinematics(t0, t1, t2, L1, L2, BH) {
+  // All angles in radians
+  // J0: base rotation (around Y in Three.js Y-up)
+  // J1: arm1 elevation (local X axis)
+  // J2: arm2 elevation (relative, local X axis)
+  // J3: gripper open/close (no position change)
+
+  const cosT0 = Math.cos(t0);
+  const sinT0 = Math.sin(t0);
+  const cosT1 = Math.cos(t1);
+  const sinT1 = Math.sin(t1);
+  const cosT12 = Math.cos(t1 + t2);
+  const sinT12 = Math.sin(t1 + t2);
+
+  // Base joint position
+  const bx = 0, by = BH, bz = 0;
+
+  // End of arm1
+  // In the horizontal plane, direction is (cosT0, sinT0)
+  // Arm1 is elevated by t1
+  const a1x = L1 * cosT1 * cosT0;
+  const a1y = BH + L1 * sinT1;      // Y is up
+  const a1z = L1 * cosT1 * sinT0;   // Z is horizontal
+
+  // End of arm2
+  const a2x = a1x + L2 * cosT12 * cosT0;
+  const a2y = a1y + L2 * sinT12;
+  const a2z = a1z + L2 * cosT12 * sinT0;
+
+  // Gripper tip = end of arm2 (open/close doesn't change position)
+  const gx = a2x;
+  const gy = a2y;
+  const gz = a2z;
+
+  const distOrigin = Math.sqrt(gx*gx + gy*gy + gz*gz);
+  const distHoriz  = Math.sqrt(gx*gx + gz*gz); // horizontal distance from base axis
+
+  return { gx, gy, gz, distOrigin, distHoriz, a1x, a1y, a1z, a2x, a2y, a2z };
+}
+
+// ─── URDF GENERATOR ─────────────────────────────────────────────────────────
+function generateURDF(L1, L2, BH) {
+  const l1m = (L1 / 1000).toFixed(3);
+  const l2m = (L2 / 1000).toFixed(3);
+  const bhm = (BH / 1000).toFixed(3);
+  return `<?xml version="1.0"?>
+<robot name="robot_arm_4dof">
+
+  <link name="world"/>
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.040" length="${bhm}"/>
+      </geometry>
+      <origin xyz="0 0 ${(BH/2000).toFixed(3)}" rpy="0 0 0"/>
+    </visual>
+  </link>
+
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="rotation_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.012" length="0.008"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="j0_base_rotation" type="revolute">
+    <parent link="base_link"/>
+    <child link="rotation_link"/>
+    <origin xyz="0 0 ${bhm}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.1415" upper="3.1415" effort="10" velocity="1.0"/>
+  </joint>
+
+  <link name="arm1_link">
+    <visual>
+      <geometry>
+        <box size="0.018 ${l1m} 0.014"/>
+      </geometry>
+      <origin xyz="0 ${(L1/2000).toFixed(3)} 0" rpy="0 0 0"/>
+    </visual>
+  </link>
+
+  <joint name="j1_arm1" type="revolute">
+    <parent link="rotation_link"/>
+    <child link="arm1_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.5707" upper="1.5707" effort="10" velocity="1.0"/>
+  </joint>
+
+  <link name="arm2_link">
+    <visual>
+      <geometry>
+        <box size="0.014 ${l2m} 0.011"/>
+      </geometry>
+      <origin xyz="0 ${(L2/2000).toFixed(3)} 0" rpy="0 0 0"/>
+    </visual>
+  </link>
+
+  <joint name="j2_arm2" type="revolute">
+    <parent link="arm1_link"/>
+    <child link="arm2_link"/>
+    <origin xyz="0 ${l1m} 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-2.3561" upper="2.3561" effort="8" velocity="1.0"/>
+  </joint>
+
+  <link name="gripper_link">
+    <visual>
+      <geometry>
+        <box size="0.012 0.030 0.010"/>
+      </geometry>
+      <origin xyz="0 0.015 0" rpy="0 0 0"/>
+    </visual>
+  </link>
+
+  <joint name="j3_gripper" type="prismatic">
+    <parent link="arm2_link"/>
+    <child link="gripper_link"/>
+    <origin xyz="0 ${l2m} 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="0" upper="0.018" effort="5" velocity="0.1"/>
+  </joint>
+
+</robot>`;
+}
+
+// ─── ORBIT CONTROLS (minimal) ────────────────────────────────────────────────
+let isDragging = false, isShift = false;
+let prevMouse = { x: 0, y: 0 };
+let spherical = { theta: Math.PI/4, phi: Math.PI/4, r: 600 };
+let target = new THREE.Vector3(0, 80, 0);
+
+function updateCamera() {
+  camera.position.x = target.x + spherical.r * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+  camera.position.y = target.y + spherical.r * Math.cos(spherical.phi);
+  camera.position.z = target.z + spherical.r * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+  camera.lookAt(target);
+}
+updateCamera();
+
+canvas.addEventListener('mousedown', e => { isDragging = true; isShift = e.shiftKey; prevMouse = { x: e.clientX, y: e.clientY }; });
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+  prevMouse = { x: e.clientX, y: e.clientY };
+  if (isShift) {
+    const right = new THREE.Vector3().crossVectors(camera.getWorldDirection(new THREE.Vector3()), camera.up).normalize();
+    target.addScaledVector(right, -dx * 0.5);
+    target.y += dy * 0.5;
+  } else {
+    spherical.theta -= dx * 0.008;
+    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy * 0.008));
+  }
+  updateCamera();
+});
+canvas.addEventListener('wheel', e => {
+  spherical.r = Math.max(100, Math.min(2000, spherical.r + e.deltaY * 0.5));
+  updateCamera();
+});
+
+// Touch support
+let lastTouch = null;
+canvas.addEventListener('touchstart', e => { lastTouch = e.touches[0]; });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const dx = t.clientX - lastTouch.clientX;
+  const dy = t.clientY - lastTouch.clientY;
+  spherical.theta -= dx * 0.01;
+  spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy * 0.01));
+  updateCamera();
+  lastTouch = t;
+}, { passive: false });
+
+// ─── UPDATE LOGIC ────────────────────────────────────────────────────────────
+let currentL1 = 150, currentL2 = 120, currentBH = 80;
+
+function getAngles() {
+  return {
+    t0: parseFloat(document.getElementById('j0').value) * Math.PI / 180,
+    t1: parseFloat(document.getElementById('j1').value) * Math.PI / 180,
+    t2: parseFloat(document.getElementById('j2').value) * Math.PI / 180,
+    g3: parseFloat(document.getElementById('j3').value), // 0~100 open %
+  };
+}
+
+function updateRobot() {
+  if (!j0Group) return;
+  const { t0, t1, t2, g3 } = getAngles();
+
+  // Apply rotations
+  j0Group.rotation.y = t0;
+  j1Group.rotation.x = t1;
+  j2Group.rotation.x = t2;
+
+  // Gripper open/close: move fingers outward by up to 18mm
+  const spread = (g3 / 100) * 18;
+  if (window.gripFingerL) window.gripFingerL.position.x = -(8 + spread);
+  if (window.gripFingerR) window.gripFingerR.position.x =  (8 + spread);
+
+  // Gripper state label
+  const gripEl = document.getElementById('fk-grip');
+  if (g3 < 5)       { gripEl.textContent = 'CLOSED'; gripEl.style.color = '#ff4d6d'; }
+  else if (g3 > 95) { gripEl.textContent = 'OPEN';   gripEl.style.color = '#00e5ff'; }
+  else              { gripEl.textContent = g3.toFixed(0) + '% OPEN'; gripEl.style.color = '#f9c300'; }
+
+  // FK (gripper position = end of arm2, gripper open/close doesn't translate)
+  const fk = forwardKinematics(t0, t1, t2, currentL1, currentL2, currentBH);
+
+  document.getElementById('fk-x').textContent = fk.gx.toFixed(1) + ' mm';
+  document.getElementById('fk-y').textContent = fk.gy.toFixed(1) + ' mm';
+  document.getElementById('fk-z').textContent = fk.gz.toFixed(1) + ' mm';
+  document.getElementById('fk-d').textContent = fk.distOrigin.toFixed(1) + ' mm';
+  document.getElementById('fk-r').textContent = fk.distHoriz.toFixed(1) + ' mm';
+
+  // Trace
+  tracePoints.push(new THREE.Vector3(fk.gx, fk.gy, fk.gz));
+  if (tracePoints.length > 300) tracePoints.shift();
+  if (traceLine) scene.remove(traceLine);
+  if (tracePoints.length > 1) {
+    const geo = new THREE.BufferGeometry().setFromPoints(tracePoints);
+    traceLine = new THREE.Line(geo, matTrace);
+    scene.add(traceLine);
+  }
+
+  // FK line
+  if (fkLine) scene.remove(fkLine);
+  const linePoints = [
+    new THREE.Vector3(0, currentBH, 0),
+    new THREE.Vector3(fk.a1x, fk.a1y, fk.a1z),
+    new THREE.Vector3(fk.a2x, fk.a2y, fk.a2z),
+    new THREE.Vector3(fk.gx, fk.gy, fk.gz),
+  ];
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xf9c300, transparent: true, opacity: 0.4, linewidth: 2 });
+  fkLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints), lineMat);
+  scene.add(fkLine);
+}
+
+// Sliders
+['j0','j1','j2'].forEach((id, i) => {
+  const el = document.getElementById(id);
+  const vEl = document.getElementById('v' + i);
+  el.addEventListener('input', () => {
+    vEl.textContent = el.value + '°';
+    updateRobot();
+  });
+});
+document.getElementById('j3').addEventListener('input', function() {
+  document.getElementById('v3').textContent = this.value + '%';
+  updateRobot();
+});
+
+// Generate button
+document.getElementById('btnGen').addEventListener('click', () => {
+  currentL1 = parseFloat(document.getElementById('L1').value) || 150;
+  currentL2 = parseFloat(document.getElementById('L2').value) || 120;
+  currentBH = parseFloat(document.getElementById('BH').value) || 80;
+
+  buildRobot(currentL1, currentL2, currentBH);
+  updateRobot();
+
+  const urdf = generateURDF(currentL1, currentL2, currentBH);
+  const box = document.getElementById('urdfBox');
+  box.textContent = urdf;
+  box.classList.add('visible');
+  document.getElementById('btnDownload').style.display = 'block';
+
+  document.getElementById('btnDownload').onclick = () => {
+    const blob = new Blob([urdf], { type: 'application/xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'robot_arm_4dof.urdf';
+    a.click();
+  };
+});
+
+// ─── RESIZE ──────────────────────────────────────────────────────────────────
+function onResize() {
+  const vp = document.querySelector('.viewport');
+  const w = vp.clientWidth, h = vp.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+// ─── INITIAL BUILD ───────────────────────────────────────────────────────────
+buildRobot(150, 120, 80);
+updateRobot();
+
+// ─── RENDER LOOP ─────────────────────────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate);
+  // subtle joint pulse
+  const t = Date.now() * 0.001;
+  jointSpheres.forEach((js, i) => {
+    js.material.emissive = new THREE.Color(0xf9c300);
+    js.material.emissiveIntensity = 0.1 + 0.08 * Math.sin(t * 2 + i);
+  });
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
