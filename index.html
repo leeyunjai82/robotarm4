@@ -6,26 +6,29 @@
 <title>4-Axis Robot Arm Viewer</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg: #0a0c10;
-    --panel: #111318;
-    --panel2: #181c24;
-    --border: #252b38;
-    --accent: #00e5ff;
-    --accent2: #f9c300;
-    --accent3: #ff4d6d;
-    --text: #c8d0e0;
-    --muted: #4a5568;
-    --grid: #161b26;
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --panel2: #f8faff;
+    --border: #e2e8f4;
+    --accent: #5b8cf5;
+    --accent2: #f0964a;
+    --accent3: #e05b7a;
+    --accent4: #7c63e8;
+    --green: #40c98e;
+    --text: #2d3a52;
+    --muted: #8e9ab5;
+    --shadow: 0 2px 12px rgba(80,100,160,0.08);
+    --shadow2: 0 4px 24px rgba(80,100,160,0.13);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Nunito', sans-serif;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -35,41 +38,42 @@
   header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    padding: 12px 20px;
     background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
     flex-shrink: 0;
+    z-index: 10;
   }
   header .logo {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-weight: 800;
-    font-size: 15px;
-    letter-spacing: 2px;
+    font-size: 17px;
     color: var(--accent);
-    text-transform: uppercase;
+    letter-spacing: -0.3px;
   }
   header .tag {
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    border: 1px solid var(--border);
-    padding: 2px 8px;
-    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: #edf2ff;
+    padding: 3px 10px;
+    border-radius: 20px;
   }
   header .status {
     margin-left: auto;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 10px;
-    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
   }
   .dot {
-    width: 6px; height: 6px;
+    width: 8px; height: 8px;
     border-radius: 50%;
-    background: #00e5a0;
-    box-shadow: 0 0 6px #00e5a0;
+    background: var(--green);
     animation: pulse 2s infinite;
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
@@ -78,6 +82,7 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+    gap: 0;
   }
 
   /* LEFT PANEL */
@@ -91,129 +96,138 @@
     flex-shrink: 0;
   }
   .section {
-    padding: 14px 16px;
+    padding: 16px;
     border-bottom: 1px solid var(--border);
   }
   .section-title {
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--accent2);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--muted);
     text-transform: uppercase;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
+    margin-bottom: 14px;
   }
 
   .param-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
   .param-row label {
-    font-size: 11px;
-    color: var(--muted);
-    width: 90px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    width: 80px;
     flex-shrink: 0;
   }
   .param-row input[type="number"] {
     flex: 1;
     background: var(--bg);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    padding: 5px 8px;
-    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 10px;
     outline: none;
-    transition: border-color .2s;
+    transition: border-color .2s, box-shadow .2s;
   }
   .param-row input[type="number"]:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(91,140,245,0.15);
   }
   .unit {
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 700;
     color: var(--muted);
-    width: 20px;
+    width: 22px;
   }
 
   .btn-gen {
     width: 100%;
-    margin-top: 8px;
-    padding: 8px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(91,140,245,0.3);
     transition: all .2s;
   }
   .btn-gen:hover {
-    background: var(--accent);
-    color: var(--bg);
+    background: #4778e8;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(91,140,245,0.4);
   }
+  .btn-gen:active { transform: translateY(0); }
 
   /* Motor sliders */
   .motor-block {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 12px 14px;
   }
   .motor-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .motor-name {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     color: var(--text);
   }
   .motor-val {
-    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--accent);
     min-width: 52px;
     text-align: right;
   }
   .motor-desc {
-    font-size: 9px;
+    font-size: 10px;
     color: var(--muted);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
   }
 
   input[type="range"] {
     -webkit-appearance: none;
     width: 100%;
-    height: 3px;
+    height: 5px;
     background: var(--border);
-    border-radius: 2px;
+    border-radius: 10px;
     outline: none;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 14px; height: 14px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
-    box-shadow: 0 0 6px var(--accent);
-    transition: box-shadow .2s;
+    box-shadow: 0 2px 8px rgba(91,140,245,0.4);
+    border: 2px solid #fff;
+    transition: box-shadow .2s, transform .1s;
   }
   input[type="range"]::-webkit-slider-thumb:hover {
-    box-shadow: 0 0 12px var(--accent);
+    transform: scale(1.15);
   }
-  .slider-j0::-webkit-slider-thumb { background: #00e5ff; box-shadow: 0 0 6px #00e5ff; }
-  .slider-j1::-webkit-slider-thumb { background: #f9c300; box-shadow: 0 0 6px #f9c300; }
-  .slider-j2::-webkit-slider-thumb { background: #a78bfa; box-shadow: 0 0 6px #a78bfa; }
-  .slider-j3::-webkit-slider-thumb { background: #ff4d6d; box-shadow: 0 0 6px #ff4d6d; }
+  .slider-j0::-webkit-slider-thumb { background: var(--accent); box-shadow: 0 2px 8px rgba(91,140,245,0.4); }
+  .slider-j0 { accent-color: var(--accent); }
+  .slider-j1::-webkit-slider-thumb { background: var(--accent2); box-shadow: 0 2px 8px rgba(240,150,74,0.4); }
+  .slider-j2::-webkit-slider-thumb { background: var(--accent4); box-shadow: 0 2px 8px rgba(124,99,232,0.4); }
+  .slider-j3::-webkit-slider-thumb { background: var(--accent3); box-shadow: 0 2px 8px rgba(224,91,122,0.4); }
+  #v1 { color: var(--accent2); }
+  #v2 { color: var(--accent4); }
+  #v3 { color: var(--accent3); }
 
   /* FK output */
   .fk-grid {
@@ -223,21 +237,22 @@
   }
   .fk-item {
     background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 8px 10px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
   }
   .fk-item.full { grid-column: 1 / -1; }
   .fk-label {
-    font-size: 9px;
+    font-size: 10px;
+    font-weight: 700;
     color: var(--muted);
-    letter-spacing: 1px;
     text-transform: uppercase;
     margin-bottom: 3px;
   }
   .fk-value {
-    font-size: 14px;
-    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--accent);
   }
   .fk-value.amber { color: var(--accent2); }
@@ -248,45 +263,56 @@
     flex: 1;
     position: relative;
     overflow: hidden;
+    background: #eef2fb;
   }
   #canvas { display: block; width: 100%; height: 100%; }
 
   .hud {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    font-size: 9px;
+    top: 14px;
+    right: 14px;
+    font-size: 11px;
+    font-weight: 600;
     color: var(--muted);
     text-align: right;
-    line-height: 1.8;
+    line-height: 2;
     pointer-events: none;
+    background: rgba(255,255,255,0.8);
+    padding: 8px 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
   }
   .hud span { color: var(--text); }
 
   .axis-legend {
     position: absolute;
-    bottom: 12px;
-    left: 12px;
+    bottom: 14px;
+    left: 14px;
     display: flex;
     gap: 12px;
-    font-size: 9px;
-    letter-spacing: 1px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.8);
+    padding: 6px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
   }
-  .ax { display: flex; align-items: center; gap: 4px; }
-  .ax-dot { width: 8px; height: 3px; border-radius: 1px; }
+  .ax { display: flex; align-items: center; gap: 5px; }
+  .ax-dot { width: 10px; height: 4px; border-radius: 2px; }
 
   /* scrollbar */
-  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar { width: 5px; }
   .sidebar::-webkit-scrollbar-track { background: transparent; }
-  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
   /* URDF area */
   .urdf-box {
     background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 8px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
     font-size: 9px;
+    font-family: 'DM Mono', monospace;
     color: var(--muted);
     max-height: 120px;
     overflow-y: auto;
@@ -295,15 +321,6 @@
     display: none;
   }
   .urdf-box.visible { display: block; }
-
-  .gripper-line {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    font-size: 9px;
-    color: var(--muted);
-    pointer-events: none;
-  }
 </style>
 </head>
 <body>
@@ -448,26 +465,26 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0c10);
-scene.fog = new THREE.FogExp2(0x0a0c10, 0.0008);
+scene.background = new THREE.Color(0xeef2fb);
+scene.fog = new THREE.FogExp2(0xdce6f8, 0.0006);
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 5000);
 camera.position.set(400, 300, 400);
 camera.lookAt(0, 0, 100);
 
 // Lights
-const ambient = new THREE.AmbientLight(0x223344, 1.5);
+const ambient = new THREE.AmbientLight(0xffffff, 1.8);
 scene.add(ambient);
-const dirLight = new THREE.DirectionalLight(0x88bbff, 1.2);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
 dirLight.position.set(300, 400, 200);
 dirLight.castShadow = true;
 scene.add(dirLight);
-const pointLight = new THREE.PointLight(0x00e5ff, 0.8, 1000);
-pointLight.position.set(-200, 200, 300);
+const pointLight = new THREE.PointLight(0x8ab4ff, 0.6, 1500);
+pointLight.position.set(-200, 300, 300);
 scene.add(pointLight);
 
 // Grid
-const gridHelper = new THREE.GridHelper(800, 20, 0x1a2030, 0x141820);
+const gridHelper = new THREE.GridHelper(800, 20, 0xc5d0e8, 0xd8e2f4);
 scene.add(gridHelper);
 
 // Axes helper (small)
@@ -476,13 +493,13 @@ axesHelper.position.set(-350, 0, -350);
 scene.add(axesHelper);
 
 // ─── MATERIALS ──────────────────────────────────────────────────────────────
-const matBase    = new THREE.MeshPhongMaterial({ color: 0x1a2540, shininess: 80, specular: 0x334466 });
-const matArm1    = new THREE.MeshPhongMaterial({ color: 0x00e5ff, shininess: 120, specular: 0x88eeff, transparent: true, opacity: 0.9 });
-const matArm2    = new THREE.MeshPhongMaterial({ color: 0xa78bfa, shininess: 120, specular: 0xccbbff, transparent: true, opacity: 0.9 });
-const matGripper = new THREE.MeshPhongMaterial({ color: 0xff4d6d, shininess: 120, specular: 0xff88aa });
-const matJoint   = new THREE.MeshPhongMaterial({ color: 0xf9c300, shininess: 200, specular: 0xffee88 });
-const matShadow  = new THREE.MeshPhongMaterial({ color: 0x0d1218, shininess: 10 });
-const matTrace   = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.3 });
+const matBase    = new THREE.MeshPhongMaterial({ color: 0x4a6fa5, shininess: 60, specular: 0x8ab0e0 });
+const matArm1    = new THREE.MeshPhongMaterial({ color: 0x5b8cf5, shininess: 100, specular: 0xaaccff, transparent: true, opacity: 0.92 });
+const matArm2    = new THREE.MeshPhongMaterial({ color: 0x7c63e8, shininess: 100, specular: 0xccbbff, transparent: true, opacity: 0.92 });
+const matGripper = new THREE.MeshPhongMaterial({ color: 0xe05b7a, shininess: 100, specular: 0xffaacc });
+const matJoint   = new THREE.MeshPhongMaterial({ color: 0xf0964a, shininess: 160, specular: 0xffd080 });
+const matShadow  = new THREE.MeshPhongMaterial({ color: 0xc5d0e8, shininess: 10 });
+const matTrace   = new THREE.LineBasicMaterial({ color: 0x5b8cf5, transparent: true, opacity: 0.35 });
 
 // ─── ROBOT OBJECTS ──────────────────────────────────────────────────────────
 let robotGroup = new THREE.Group();
@@ -517,7 +534,7 @@ function buildRobot(L1, L2, BH) {
 
   // Base top plate
   const topGeo = new THREE.CylinderGeometry(35, 35, 8, 24);
-  const topMesh = new THREE.Mesh(topGeo, matShadow);
+  const topMesh = new THREE.Mesh(topGeo, new THREE.MeshPhongMaterial({ color: 0x3a5a8a, shininess: 60 }));
   topMesh.position.y = BH + 4;
   robotGroup.add(topMesh);
 
@@ -623,7 +640,7 @@ function buildRobot(L1, L2, BH) {
 
   // Shadow plane
   const shadowGeo = new THREE.CircleGeometry(80, 32);
-  const shadowMesh = new THREE.Mesh(shadowGeo, new THREE.MeshPhongMaterial({ color: 0x060810, transparent: true, opacity: 0.4 }));
+  const shadowMesh = new THREE.Mesh(shadowGeo, new THREE.MeshPhongMaterial({ color: 0x9ab0d0, transparent: true, opacity: 0.18 }));
   shadowMesh.rotation.x = -Math.PI / 2;
   shadowMesh.position.y = 0.5;
   robotGroup.add(shadowMesh);
@@ -874,7 +891,7 @@ function updateRobot() {
     new THREE.Vector3(fk.a2x, fk.a2y, fk.a2z),
     new THREE.Vector3(fk.gx, fk.gy, fk.gz),
   ];
-  const lineMat = new THREE.LineBasicMaterial({ color: 0xf9c300, transparent: true, opacity: 0.4, linewidth: 2 });
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xf0964a, transparent: true, opacity: 0.5, linewidth: 2 });
   fkLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(linePoints), lineMat);
   scene.add(fkLine);
 }
@@ -938,7 +955,7 @@ function animate() {
   // subtle joint pulse
   const t = Date.now() * 0.001;
   jointSpheres.forEach((js, i) => {
-    js.material.emissive = new THREE.Color(0xf9c300);
+    js.material.emissive = new THREE.Color(0xf0964a);
     js.material.emissiveIntensity = 0.1 + 0.08 * Math.sin(t * 2 + i);
   });
   renderer.render(scene, camera);
