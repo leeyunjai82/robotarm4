@@ -287,6 +287,14 @@
         </div>
         <div class="sep"></div>
         <div class="ln">
+          <span data-i18n="spd.label">🐢🐇 속도</span>
+          <select id="spdJoint"><option value="1">ch1</option><option value="2">ch2</option><option value="3">ch3</option><option value="4">ch4</option><option value="5">ch6</option></select>
+          <input type="number" id="spdVal" min="1" max="720" value="60"><span data-i18n="spd.unit">도/초</span>
+          <button class="k" id="btnSpeed" data-i18n="spd.send">적용</button>
+          <label style="margin-left:auto"><input type="checkbox" id="easing" checked><span data-i18n="spd.ease">부드럽게</span></label>
+        </div>
+        <div class="sep"></div>
+        <div class="ln">
           <span data-i18n="pose.title">⭐ 자세 저장</span>
           <input type="text" id="presetName" data-i18n-placeholder="pose.ph" placeholder="자세 이름" style="width:88px">
           <button class="k" id="btnPresetSave" data-i18n="pose.save">지금 자세 저장</button>
@@ -307,13 +315,6 @@
               <span class="note" id="calibTxt" style="margin-left:auto"></span>
             </div>
             <p class="note" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
-            <div class="ln">
-              <span data-i18n="spd.label">속도</span>
-              <select id="spdJoint"><option value="1">ch1</option><option value="2">ch2</option><option value="3">ch3</option><option value="4">ch4</option><option value="5">ch6</option></select>
-              <input type="number" id="spdVal" min="1" max="720" value="60"><span data-i18n="spd.unit">도/초</span>
-              <button class="k" id="btnSpeed" data-i18n="spd.send">적용</button>
-              <label style="margin-left:auto"><input type="checkbox" id="easing" checked><span data-i18n="spd.ease">부드럽게</span></label>
-            </div>
           </div>
         </details>
       </div>
@@ -369,16 +370,6 @@
       <div class="tlwrap" id="tlWrap"><canvas id="tlCanvas"></canvas></div>
     </section>
 
-    <section class="box" style="flex:0 0 auto">
-      <h2 data-i18n="meter.title">📊 모터 계기판</h2>
-      <div class="inner" style="padding-top:6px">
-        <table class="m">
-          <tr><th style="width:44px" data-i18n="meter.ch">채널</th><th data-i18n="meter.axis">부품</th><th class="r" data-i18n="meter.cmd">목표</th><th class="r" data-i18n="meter.cur">지금</th><th class="r" data-i18n="meter.pulse">펄스</th></tr>
-          <tbody id="chTable"></tbody>
-        </table>
-        <p class="note" data-i18n="meter.note">펄스 = 544~2400us 계산값(보정 포함) · #pos! 응답이 오면 로봇 값으로 맞춰요</p>
-      </div>
-    </section>
   </div>
 
   <!-- 우: 컨베이어 + 순서 + 대화 -->
@@ -481,17 +472,14 @@ wait 1600
       'pose.fileSave': 'pose.json 저장', 'pose.fileLoad': '불러오기', 'pose.del': '(Shift+클릭: 지우기)',
       'teacher.title': '⚙️ 선생님 도구', 'cal.btn': '영점 맞추기', 'cal.reset': '보정값 지우기', 'cal.txt': '보정',
       'cal.help': '영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.',
-      'spd.label': '속도', 'spd.unit': '도/초', 'spd.send': '적용', 'spd.ease': '부드럽게',
+      'spd.label': '🐢🐇 속도', 'spd.unit': '도/초', 'spd.send': '적용', 'spd.ease': '부드럽게',
       'view.title': '👀 3D 공장 보기', 'view.echo': '명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)',
       'view.hud': '왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기',
       'view.label': '보기', 'view.all': '전체', 'view.arm': '로봇팔', 'view.belt': '벨트', 'view.flag': '차단봉', 'view.top': '위에서',
       'view.grid': '바닥선', 'view.wire': '뼈대', 'view.axes': '회전축', 'view.shot': '📷 사진', 'view.zoom': '확대',
       'tl.title': '🎬 동작 타임라인 (ch1-4)', 'tl.kf': '장면 {n}개', 'tl.toStart': '처음으로', 'tl.play': '재생 / 잠깐 멈춤', 'tl.stop': '정지',
       'tl.add': '+ 장면 추가', 'tl.del': '✕ 지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
-      'meter.title': '📊 모터 계기판', 'meter.ch': '채널', 'meter.axis': '부품', 'meter.cmd': '목표', 'meter.cur': '지금', 'meter.pulse': '펄스',
-      'meter.note': '펄스 = 544~2400us 계산값(보정 포함) · #pos! 응답이 오면 로봇 값으로 맞춰요',
-      'row.base': '회전(베이스)', 'row.shld': '어깨', 'row.elbw': '팔꿈치', 'row.grip': '집게', 'row.flag': '차단봉', 'row.roll': '벨트',
-      'row.run': '돌아감', 'row.stop': '멈춤', 'row.cut': '꺼짐',
+      'row.cut': '꺼짐',
       'conv.title': '🏭 컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.run': '▶ 벨트 돌리기', 'conv.stop': '멈춤', 'conv.rev': '거꾸로',
       'conv.timed': '⏱ 잠깐만', 'conv.timedTitle': '옆에 적은 ms 동안만 돌아요',
       'conv.flag': '차단봉', 'flag.c': '🚧 닫기 (0)', 'flag.r': '🟢 열기 (+90)', 'flag.move': '가기', 'flag.flip': '⏱ 열었다 닫기', 'flag.flipTitle': '옆에 적은 ms 뒤에 다시 닫혀요',
@@ -528,17 +516,14 @@ wait 1600
       'pose.fileSave': 'Save pose.json', 'pose.fileLoad': 'Load', 'pose.del': '(Shift+click: delete)',
       'teacher.title': '⚙️ Teacher tools', 'cal.btn': 'Zero calibration', 'cal.reset': 'Clear offsets', 'cal.txt': 'Offset',
       'cal.help': 'Zero mode: −/+ changes the ch1-3 offset by 1° (applied only to what is sent to the real robot, saved in the browser). Adjust until the robot stands straight.',
-      'spd.label': 'Speed', 'spd.unit': 'deg/s', 'spd.send': 'Apply', 'spd.ease': 'Smooth',
+      'spd.label': '🐢🐇 Speed', 'spd.unit': 'deg/s', 'spd.send': 'Apply', 'spd.ease': 'Smooth',
       'view.title': '👀 3D Factory View', 'view.echo': 'Shows what you commanded (not the real position)',
       'view.hud': 'Left drag: orbit · Right/Shift: pan · Wheel: zoom · Click: pick a part',
       'view.label': 'View', 'view.all': 'All', 'view.arm': 'Arm', 'view.belt': 'Belt', 'view.flag': 'Gate', 'view.top': 'Top',
       'view.grid': 'Grid', 'view.wire': 'Wire', 'view.axes': 'Axes', 'view.shot': '📷 Snapshot', 'view.zoom': 'Zoom',
       'tl.title': '🎬 Motion Timeline (ch1-4)', 'tl.kf': '{n} keyframes', 'tl.toStart': 'To start', 'tl.play': 'Play / pause', 'tl.stop': 'Stop',
       'tl.add': '+ Add keyframe', 'tl.del': '✕ Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
-      'meter.title': '📊 Motor Dashboard', 'meter.ch': 'CH', 'meter.axis': 'Part', 'meter.cmd': 'Target', 'meter.cur': 'Now', 'meter.pulse': 'Pulse',
-      'meter.note': 'Pulse = computed 544~2400us (with offset) · synced to the robot when #pos! replies',
-      'row.base': 'Turn (base)', 'row.shld': 'Shoulder', 'row.elbw': 'Elbow', 'row.grip': 'Gripper', 'row.flag': 'Gate', 'row.roll': 'Belt',
-      'row.run': 'Running', 'row.stop': 'Stopped', 'row.cut': 'Off',
+      'row.cut': 'Off',
       'conv.title': '🏭 Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.run': '▶ Run belt', 'conv.stop': 'Stop', 'conv.rev': 'Reverse',
       'conv.timed': '⏱ For a while', 'conv.timedTitle': 'Runs only for the ms typed next to it',
       'conv.flag': 'Gate', 'flag.c': '🚧 Close (0)', 'flag.r': '🟢 Open (+90)', 'flag.move': 'Go', 'flag.flip': '⏱ Open & close', 'flag.flipTitle': 'Closes again after the ms typed next to it',
@@ -1164,27 +1149,7 @@ wait 1600
     requestAnimationFrame(frame);
   }
 
-  const CH_ROWS = [
-    { i: 0, ch: 1, key: 'row.base' }, { i: 1, ch: 2, key: 'row.shld' },
-    { i: 2, ch: 3, key: 'row.elbw' }, { i: 3, ch: 4, key: 'row.grip' },
-    { i: 4, ch: 6, key: 'row.flag' }
-  ];
   function updateHud() {
-    const rows = CH_ROWS.map(c => {
-      const j = sim.joints[c.i];
-      const to = Math.round(j.to), cur = Math.round(j.cur);
-      const st = sim.released ? 'var(--red)' : j.dur > 0 ? 'var(--orange)' : 'var(--muted)';
-      const shown = c.ch === 6 ? `${to - 90}°` : `${to}°`;
-      const shownCur = c.ch === 6 ? `${cur - 90}°` : `${cur}°`;
-      const us = c.ch === 6 ? angToUs(cur) : angToUs(withCal(c.ch, cur));
-      return `<tr><td>ch${c.ch}</td><td>${t(c.key)}</td>` +
-             `<td class="r">${shown}</td><td class="r" style="color:${st}">${shownCur}</td>` +
-             `<td class="r">${us}µs</td></tr>`;
-    });
-    rows.push(`<tr><td>ch5</td><td>${t('row.roll')}</td><td class="r">${sim.roller}</td>` +
-              `<td class="r" style="color:${sim.roller ? 'var(--green)' : 'var(--muted)'}">${sim.roller ? t('row.run') : t('row.stop')}</td>` +
-              `<td class="r">${sim.roller ? angToUs(90 + sim.roller) + 'µs' : t('row.cut')}</td></tr>`);
-    $('chTable').innerHTML = rows.join('');
     for (let i = 1; i <= 4; i++) {
       const v = +$('v' + i).value;
       let s = angToUs(withCal(i, v)) + 'µs';
