@@ -4,405 +4,400 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>미니 로봇 공장 조종실</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* 초등용 미니 공장 테마 — 한 화면 고정, 스크롤 없음 */
+  /* ---------- 디자인 토큰 ---------- */
   :root {
-    --bg: #eaf1fb;
-    --panel: #ffffff;
-    --panel2: #f4f7fd;
-    --border: #d6e0f0;
-    --ink: #24314d;
-    --muted: #7d89a6;
-    --yellow: #ffc233;
-    --yellow-d: #e0a400;
-    --yellow-l: #fff3c9;
-    --blue: #3f7ef2;
-    --blue-l: #e3edff;
-    --teal: #1fbfae;
-    --orange: #ff8a3d;
-    --red: #ef476f;
-    --green: #2fbf71;
-    --green-l: #dcf7e8;
-    --sans: "Nunito", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
-    --mono: "DM Mono", "D2Coding", "SF Mono", "Courier New", monospace;
-    --shadow: 0 2px 10px rgba(60, 90, 150, .10);
-    --r: 14px;
+    --bg: #F3F4F6;
+    --surface: #FFFFFF;
+    --surface-2: #F8F9FB;
+    --line: #E3E6EB;
+    --line-strong: #CDD2DA;
+    --text: #1B2130;
+    --text-2: #5B6472;
+    --text-3: #8A93A2;
+    --primary: #2F6BFF;
+    --primary-hover: #2459DB;
+    --primary-soft: #EAF0FF;
+    --accent: #FFC629;          /* 공장 안전색 */
+    --danger: #E5484D;
+    --danger-soft: #FDECEC;
+    --success: #1DA462;
+    --success-soft: #E6F6EE;
+    --warning: #F59E0B;
+    --sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+    --mono: "JetBrains Mono", "D2Coding", "SF Mono", Menlo, Consolas, monospace;
+    --r-sm: 6px; --r: 8px; --r-lg: 12px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+    --fs-xs: 11px; --fs-sm: 12px; --fs: 13px; --fs-md: 14px; --fs-lg: 16px;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden; }
   body {
-    background:
-      radial-gradient(circle at 12% 10%, #ffffff 0, transparent 40%),
-      radial-gradient(circle at 88% 90%, #dbe9ff 0, transparent 45%),
-      var(--bg);
-    color: var(--ink); font: 700 13px/1.4 var(--sans);
+    background: var(--bg); color: var(--text);
+    font: 500 var(--fs)/1.45 var(--sans); letter-spacing: -0.005em;
     display: flex; flex-direction: column;
+    -webkit-font-smoothing: antialiased;
   }
   button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; }
-  button:disabled { opacity: .4; cursor: not-allowed; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
   input[type=file] { display: none; }
-  ::selection { background: var(--yellow); color: var(--ink); }
-  :focus-visible { outline: 3px solid rgba(63,126,242,.45); outline-offset: 1px; border-radius: 8px; }
+  [hidden] { display: none !important; }
+  ::selection { background: var(--primary-soft); }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--r-sm); }
+  svg.i { width: 16px; height: 16px; flex: 0 0 auto; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  svg.i.sm { width: 14px; height: 14px; }
+  svg.i.fill { fill: currentColor; stroke: none; }
 
-  /* 상단 바 */
+  /* ---------- 헤더 ---------- */
   header {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    padding: 7px 12px; background: var(--ink); color: #fff; flex: 0 0 auto;
-    border-bottom: 6px solid var(--yellow);
-    position: relative;
+    padding: 11px 16px 8px; background: var(--surface); border-bottom: 1px solid var(--line);
+    box-shadow: inset 0 3px 0 var(--accent); flex: 0 0 auto;
   }
-  header::after {   /* 공장 안전 줄무늬 */
-    content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 6px;
-    background: repeating-linear-gradient(-45deg, var(--yellow) 0 14px, var(--ink) 14px 28px);
+  .brand { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-lg); font-weight: 700; letter-spacing: -0.01em; margin-right: 4px; }
+  .brand .mark { width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--text); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+  .brand .mark svg { width: 18px; height: 18px; }
+  .sub { color: var(--text-3); font-size: var(--fs-sm); font-weight: 500; }
+  .sp { flex: 1; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-2); padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); }
+  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); display: block; }
+  .status i.on { background: var(--success); }
+  .status i.busy { background: var(--warning); }
+  .field { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-2); }
+  select, input[type=number], input[type=text] {
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); color: var(--text);
+    padding: 4px 8px; height: 30px; font-size: var(--fs);
   }
-  header .logo { font-size: 15px; font-weight: 900; letter-spacing: .01em; display: inline-flex; align-items: center; gap: 6px; }
-  header .sub { font-weight: 700; color: #b9c6e4; font-size: 12px; }
-  header .sp { flex: 1; }
-  .pilot {
-    display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12px;
-    background: rgba(255,255,255,.08); padding: 3px 9px; border-radius: 999px;
-  }
-  .pilot i { width: 10px; height: 10px; border-radius: 50%; background: #56607a; display: block; }
-  .pilot i.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .pilot i.busy { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
-  .hkey {
-    background: var(--yellow); color: var(--ink); border: 0; padding: 5px 11px; border-radius: 999px;
-    font-weight: 900; box-shadow: 0 3px 0 var(--yellow-d); transition: transform .05s;
-  }
-  .hkey:hover:not(:disabled) { filter: brightness(1.05); }
-  .hkey:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--yellow-d); }
-  .hkey.halt { background: var(--red); color: #fff; box-shadow: 0 3px 0 #b8264d; }
-  .hkey.ghost { background: #3a4866; color: #fff; box-shadow: 0 3px 0 #1c2537; }
-  .hkey.lang { background: #fff; color: var(--ink); box-shadow: 0 3px 0 #b9c6e4; padding: 5px 11px; }
-  .hsel { background: #3a4866; color: #fff; border: 0; padding: 4px 6px; border-radius: 8px; font-weight: 700; }
-  header label.st { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #d6dff2; font-weight: 700; }
-  input[type=checkbox] { accent-color: var(--blue); width: 15px; height: 15px; }
+  input[type=number], .rd input { font-family: var(--mono); font-weight: 400; }
+  input[type=checkbox] { accent-color: var(--primary); width: 15px; height: 15px; margin: 0; }
+  input[type=range] { width: 100%; height: 24px; accent-color: var(--primary); background: transparent; margin: 0; }
 
-  .warn { display: none; padding: 6px 14px; background: var(--yellow-l); color: #7a5200; flex: 0 0 auto; border-bottom: 1px solid #f0d78a; }
-
-  /* 본문: 한 화면 3열 */
-  main {
-    flex: 1; min-height: 0; display: grid; gap: 10px; padding: 14px 10px 10px;
-    grid-template-columns: 330px minmax(0, 1fr) 380px;
+  /* ---------- 버튼 ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 12px;
+    border-radius: var(--r); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
+    font-size: var(--fs); font-weight: 600; white-space: nowrap; transition: background .12s, border-color .12s, color .12s;
   }
-  .col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .btn:hover:not(:disabled) { background: var(--surface-2); border-color: #B9C0CB; }
+  .btn:active:not(:disabled) { background: #EEF0F3; }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn.primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+  .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .btn.danger:hover:not(:disabled) { background: #CF3D42; border-color: #CF3D42; }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--text-2); }
+  .btn.ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+  .btn.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+  .btn.success.on { background: var(--success-soft); border-color: var(--success); color: var(--success); }
+  .btn.outline-danger { color: var(--danger); border-color: #F3B4B6; }
+  .btn.outline-danger:hover:not(:disabled) { background: var(--danger-soft); }
+  .btn.icon { width: 30px; padding: 0; }
+  .btn.sm { height: 26px; padding: 0 9px; font-size: var(--fs-sm); }
+  .btn.grow { flex: 1; }
+  .warnbar { display: none; padding: 6px 16px; background: #FFF6D9; color: #7A5200; border-bottom: 1px solid #F3DF9C; font-size: var(--fs-sm); flex: 0 0 auto; }
 
-  .box {
-    border: 2px solid var(--border); background: var(--panel); border-radius: var(--r);
-    display: flex; flex-direction: column; min-height: 0; box-shadow: var(--shadow); overflow: hidden;
+  /* ---------- 레이아웃 ---------- */
+  main { flex: 1; min-height: 0; display: grid; gap: 12px; padding: 12px; grid-template-columns: 320px minmax(0, 1fr) 360px; }
+  .col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .card > h2 {
+    margin: 0; padding: 10px 14px; font-size: var(--fs-md); font-weight: 700; letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); flex: 0 0 auto;
   }
-  .box > h2 {
-    margin: 0; font-size: 13.5px; font-weight: 900;
-    padding: 6px 10px; background: var(--panel2); color: var(--ink); border-bottom: 2px solid var(--border);
-    display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
-  }
-  .box > h2 .sp { flex: 1; }
-  .box > h2 .hopt { font-weight: 700; display: inline-flex; gap: 4px; align-items: center; font-size: 12px; color: var(--muted); }
-  .box.arm > h2 { background: var(--blue-l); }
-  .box.conv > h2 { background: var(--yellow-l); }
-  .box.seq > h2 { background: var(--green-l); }
-  .inner { padding: 9px; display: flex; flex-direction: column; gap: 7px; overflow: auto; min-height: 0; }
-  .inner::-webkit-scrollbar { width: 8px; }
-  .inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+  .card > h2 .i { color: var(--text-2); }
+  .card > h2 > span[data-i18n] { white-space: nowrap; }
+  .card > h2 .meta { font-size: var(--fs-sm); color: var(--text-3); font-weight: 500; }
+  .card > h2 .opt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 500; color: var(--text-2); }
+  .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; overflow: auto; min-height: 0; }
+  .body::-webkit-scrollbar { width: 8px; }
+  .body::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+  .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .hr { border-top: 1px solid var(--line); margin: 2px 0; }
+  .label { font-size: var(--fs-sm); color: var(--text-2); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .hint { margin: 0; font-size: var(--fs-xs); color: var(--text-3); line-height: 1.5; }
+  .section-title { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
 
-  /* 채널 스트립 */
-  .strip { display: grid; grid-template-columns: 62px 1fr 84px; align-items: center; gap: 6px; }
-  .strip.arm { grid-template-columns: 62px 1fr 22px 76px 22px; gap: 4px; padding: 3px 4px; border: 2px solid transparent; border-radius: 10px; }
-  .strip.hl { border-color: var(--yellow); background: var(--yellow-l); }
-  .strip label { color: var(--ink); font-size: 12.5px; font-weight: 800; }
-  input[type=range] { width: 100%; height: 18px; accent-color: var(--blue); background: transparent; }
+  /* ---------- 축 스트립 ---------- */
+  .strip { display: grid; grid-template-columns: 64px 1fr 84px; align-items: center; gap: 8px; padding: 2px 4px; border-radius: var(--r); border: 1px solid transparent; }
+  .strip.arm { grid-template-columns: 64px 1fr 26px 74px 26px; gap: 6px; }
+  .strip.hl { border-color: var(--primary); background: var(--primary-soft); }
+  .strip label { font-size: var(--fs); font-weight: 600; color: var(--text); }
   .rd { text-align: right; line-height: 1.1; }
-  .rd input {
-    width: 100%; background: var(--panel2); border: 2px solid var(--border); color: var(--ink); border-radius: 8px;
-    text-align: right; padding: 2px 6px; font-size: 13px; font-family: var(--mono); font-weight: 500;
-  }
+  .rd input { width: 100%; height: 28px; text-align: right; padding: 0 8px; }
   .rd input::-webkit-outer-spin-button, .rd input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .rd .sub { display: block; font-size: 10px; color: var(--muted); white-space: nowrap; font-family: var(--mono); font-weight: 400; }
-  .nb {
-    width: 22px; height: 24px; padding: 0; background: #fff; border: 2px solid var(--border); border-radius: 8px;
-    color: var(--blue); font-size: 15px; font-weight: 900; line-height: 1; user-select: none; touch-action: none;
-  }
-  .nb:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
-  body.calib .strip.arm:not([data-ch="4"]) .rd input { color: var(--green); border-color: #9be2bc; }
-  body.calib .strip.arm:not([data-ch="4"]) .nb { color: var(--green); border-color: #9be2bc; }
-  body.calib .strip.arm:not([data-ch="4"]) .sub { color: var(--green); }
+  .rd .sub { display: block; font-size: 10px; color: var(--text-3); white-space: nowrap; font-family: var(--mono); font-weight: 400; margin-top: 2px; }
+  .nb { width: 26px; height: 28px; padding: 0; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; user-select: none; touch-action: none; }
+  .nb:hover { border-color: var(--primary); color: var(--primary); }
+  body.calib .strip.arm:not([data-ch="4"]) .rd input { color: var(--success); border-color: #9BDDB9; }
+  body.calib .strip.arm:not([data-ch="4"]) .nb { color: var(--success); border-color: #9BDDB9; }
+  body.calib .strip.arm:not([data-ch="4"]) .sub { color: var(--success); }
 
-  .btns { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-  .btns .grow { flex: 1; }
-  .k {
-    background: #fff; border: 2px solid var(--border); color: var(--ink); border-radius: 10px;
-    padding: 4px 10px; font-size: 12.5px; font-weight: 800; box-shadow: 0 2px 0 var(--border); white-space: nowrap;
-  }
-  .k:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
-  .k:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
-  .k.on { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 2px 0 #2b5fc4; }
-  .k.big { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 3px 0 #2b5fc4; padding: 6px 12px; }
-  .k.big:hover:not(:disabled) { color: #fff; filter: brightness(1.06); }
-  .k.sun { background: var(--yellow); border-color: var(--yellow); color: var(--ink); box-shadow: 0 3px 0 var(--yellow-d); }
-  .k.sun:hover:not(:disabled) { color: var(--ink); filter: brightness(1.04); }
-  .k.leaf { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 3px 0 #22955a; }
-  .k.leaf:hover:not(:disabled) { color: #fff; }
-  .k.grn.on { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 0 #22955a; }
-  .k.danger { border-color: #f6c1cf; color: var(--red); }
-  .ln { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; color: var(--muted); font-size: 12px; font-weight: 700; }
-  .ln input[type=number], .ln input[type=text], .ln select, .tlbar input[type=number], .tlbar select, input.num {
-    background: var(--panel2); border: 2px solid var(--border); border-radius: 8px; color: var(--ink);
-    padding: 2px 6px; width: 68px; font-size: 12.5px; font-family: var(--mono); font-weight: 500;
-  }
-  .ln label { display: inline-flex; align-items: center; gap: 4px; }
-  .sep { border-top: 2px dashed var(--border); }
-  .note { margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4; font-weight: 700; }
-  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 4px; }
-  .chips .k { background: var(--yellow-l); border-color: #f4dc9a; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips .btn { height: 28px; padding: 0 10px; font-family: var(--mono); font-weight: 500; font-size: var(--fs-sm); }
+  .num { width: 64px; }
 
-  /* 뷰 */
-  .view {
-    flex: 1 1 auto; min-height: 150px; position: relative; cursor: grab; border-bottom: 2px solid var(--border);
-    background: linear-gradient(#dcebff, #f2f7ff);
-  }
+  /* ---------- 3D 뷰 ---------- */
+  .view { flex: 1 1 auto; min-height: 150px; position: relative; cursor: grab; border-bottom: 1px solid var(--line); background: #E4EEFB; }
   .view.dragging { cursor: grabbing; }
   .view canvas { display: block; width: 100%; height: 100%; }
-  .hud {
-    position: absolute; left: 10px; bottom: 8px; font-size: 10.5px; color: var(--ink); pointer-events: none;
-    background: rgba(255,255,255,.75); padding: 2px 8px; border-radius: 999px; font-weight: 700;
-  }
-  .tip {
-    position: absolute; display: none; pointer-events: none; z-index: 5;
-    background: var(--ink); color: #fff; padding: 3px 9px; font-size: 11.5px; border-radius: 999px; font-weight: 800;
-  }
-  .viewbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); flex: 0 0 auto; }
-  .viewbar input[type=range] { width: 84px; }
-  .viewbar label { display: inline-flex; align-items: center; gap: 4px; }
-  .vsep { width: 2px; height: 16px; background: var(--border); margin: 0 3px; border-radius: 2px; }
+  .hud { position: absolute; left: 10px; bottom: 8px; font-size: var(--fs-xs); color: var(--text-2); pointer-events: none; background: rgba(255,255,255,.85); border: 1px solid var(--line); padding: 3px 8px; border-radius: 999px; }
+  .tip { position: absolute; display: none; pointer-events: none; z-index: 5; background: var(--text); color: #fff; padding: 3px 9px; font-size: var(--fs-sm); border-radius: var(--r-sm); font-weight: 600; }
+  .toolbar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; flex-wrap: wrap; font-size: var(--fs-sm); color: var(--text-2); flex: 0 0 auto; }
+  .toolbar .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; }
+  .toolbar .seg .btn { border: 0; border-radius: 0; height: 28px; padding: 0 10px; font-weight: 500; }
+  .toolbar .seg .btn + .btn { border-left: 1px solid var(--line); }
+  .toolbar input[type=range] { width: 90px; }
+  .vsep { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
 
-  /* 타임라인 */
-  .tlbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); flex: 0 0 auto; }
-  .tlbar input[type=number] { width: 52px; }
-  .tlbar select { width: auto; }
-  .tltime { min-width: 54px; text-align: center; color: var(--ink); font-family: var(--mono); font-weight: 500; }
-  .tlwrap { height: 64px; margin: 0 8px 8px; border: 2px solid var(--border); border-radius: 10px; position: relative; flex: 0 0 auto; overflow: hidden; }
+  /* ---------- 타임라인 ---------- */
+  .tlwrap { height: 64px; margin: 0 12px 12px; border: 1px solid var(--line); border-radius: var(--r); position: relative; flex: 0 0 auto; overflow: hidden; }
   .tlwrap canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+  .tltime { min-width: 56px; text-align: center; font-family: var(--mono); font-weight: 500; color: var(--text); font-size: var(--fs-sm); }
 
-  /* 계기 */
-  table.m { width: 100%; border-collapse: collapse; font-size: 12px; }
-  table.m th { text-align: left; font-weight: 800; color: var(--muted); padding-bottom: 3px; }
-  table.m td { padding: 2px 0; border-top: 1px solid var(--panel2); }
-  table.m td.r { text-align: right; font-family: var(--mono); font-weight: 500; }
-  table.m tr td:first-child { color: var(--muted); font-family: var(--mono); font-weight: 500; }
-
-  textarea.seq {
-    width: 100%; height: 96px; resize: none; background: var(--panel2); color: var(--ink);
-    border: 2px solid var(--border); border-radius: 10px; padding: 5px 7px; font: 500 12px/1.45 var(--mono);
-  }
-  .tape {
-    flex: 1; min-height: 0; overflow: auto; background: #1e2740; margin: 0 9px;
-    border-radius: 10px; padding: 6px 8px; font: 400 11.5px/1.45 var(--mono);
-    white-space: pre-wrap; word-break: break-all; color: #c8d3ea;
-  }
+  /* ---------- 시퀀스 / 터미널 ---------- */
+  textarea.seq { width: 100%; height: 96px; resize: none; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 8px 10px; font: 400 12px/1.5 var(--mono); }
+  .tape { flex: 1; min-height: 0; overflow: auto; background: #151A23; margin: 0 12px; border-radius: var(--r); padding: 8px 10px; font: 400 11.5px/1.5 var(--mono); white-space: pre-wrap; word-break: break-all; color: #C3CAD6; }
   .tape::-webkit-scrollbar { width: 8px; }
-  .tape::-webkit-scrollbar-thumb { background: #3a4866; border-radius: 8px; }
-  .tape .tx { color: #ffd166; } .tape .rx { color: #7ee2a0; }
-  .tape .err { color: #ff7b9c; } .tape .sys { color: #8fa3cc; }
-  .send { display: flex; gap: 5px; padding: 8px 9px; flex: 0 0 auto; }
-  .send input {
-    flex: 1; background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; color: var(--ink);
-    padding: 4px 8px; font: 500 12.5px var(--mono); min-width: 0;
-  }
+  .tape::-webkit-scrollbar-thumb { background: #39414F; border-radius: 8px; }
+  .tape .tx { color: #FFD166; } .tape .rx { color: #7EE0A4; } .tape .err { color: #FF7B8A; } .tape .sys { color: #8B97AD; }
+  .send { display: flex; gap: 6px; padding: 10px 12px; flex: 0 0 auto; }
+  .send input { flex: 1; min-width: 0; font-family: var(--mono); font-weight: 400; }
 
   @media (max-width: 1520px) { header .sub { display: none; } }
   @media (max-width: 1180px) {
     html, body { overflow: auto; }
     main { grid-template-columns: 1fr; }
-    .view { height: 300px; flex: 0 0 auto; }
-    .inner { overflow: visible; }
+    .view { height: 320px; flex: 0 0 auto; }
+    .body { overflow: visible; }
   }
 </style>
 </head>
 <body>
 
+<!-- 아이콘 스프라이트 (24px 그리드, 2px 스트로크, 라운드 캡) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="11" rx="2"/><circle cx="12" cy="4.5" r="1.5"/><path d="M12 6v4"/><path d="M8 15h.01M16 15h.01"/><path d="M9 18h6"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2M15 8V2"/><path d="M6 8h12v4a6 6 0 0 1-12 0z"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><path d="M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9z"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></symbol>
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><path d="M7 4v5M12 4v5M17 4v5"/></symbol>
+  <symbol id="i-belt" viewBox="0 0 24 24"><rect x="2" y="13" width="20" height="6" rx="3"/><circle cx="6" cy="16" r=".8"/><circle cx="12" cy="16" r=".8"/><circle cx="18" cy="16" r=".8"/><rect x="8" y="5" width="8" height="8" rx="1"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+  <symbol id="i-skip-back" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></symbol>
+  <symbol id="i-axes" viewBox="0 0 24 24"><path d="M5 3v16h16"/><path d="M5 19 19 5"/><path d="M2 6l3-3 3 3"/><path d="M18 16l3 3-3 3"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14l4-5"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/></symbol>
+  <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M20 20H8"/><path d="M8 20 3 15a2 2 0 0 1 0-2.8L12.2 3a2 2 0 0 1 2.8 0l6 6a2 2 0 0 1 0 2.8L13 20"/><path d="M6.5 10.5l7 7"/></symbol>
+</svg>
+
 <header>
-  <span class="logo">🏭 <span data-i18n="app.title">미니 로봇 공장 조종실</span></span>
+  <span class="brand"><span class="mark"><svg class="i"><use href="#i-bot"/></svg></span><span data-i18n="app.title">미니 로봇 공장 조종실</span></span>
   <span class="sub" data-i18n="app.sub">로봇팔 4채널 + 컨베이어 2채널</span>
-  <span class="pilot"><i id="lampLink"></i><span id="lampLinkTxt">로봇 연결 안 됨</span></span>
-  <span class="pilot"><i id="lampBusy"></i><span id="lampBusyTxt">쉬는 중</span></span>
+  <span class="status"><i id="lampLink"></i><span id="lampLinkTxt">로봇 연결 안 됨</span></span>
+  <span class="status"><i id="lampBusy"></i><span id="lampBusyTxt">쉬는 중</span></span>
   <span class="sp"></span>
-  <label class="st"><span data-i18n="hdr.baud">통신속도</span>
-    <select class="hsel" id="baudSel">
+  <label class="field"><span data-i18n="hdr.baud">통신속도</span>
+    <select id="baudSel">
       <option value="9600">9600</option>
       <option value="57600">57600</option>
       <option value="115200" selected>115200</option>
       <option value="1000000">1000000</option>
     </select>
   </label>
-  <label class="st"><input type="checkbox" id="autoRe" checked><span data-i18n="hdr.autore">자동 다시연결</span></label>
-  <button class="hkey" id="btnConnect" data-i18n="hdr.connect">🔌 로봇 연결</button>
-  <button class="hkey ghost" id="btnDisconnect" disabled data-i18n="hdr.disconnect">연결 끊기</button>
-  <button class="hkey halt" id="btnStop" data-i18n="hdr.stop">🛑 멈춰! (ESC)</button>
-  <button class="hkey lang" id="btnLang" title="한국어 / English">🌐 English</button>
+  <label class="field"><input type="checkbox" id="autoRe" checked><span data-i18n="hdr.autore">자동 다시연결</span></label>
+  <button class="btn primary" id="btnConnect"><svg class="i"><use href="#i-plug"/></svg><span data-i18n="hdr.connect">로봇 연결</span></button>
+  <button class="btn" id="btnDisconnect" disabled><svg class="i"><use href="#i-power"/></svg><span data-i18n="hdr.disconnect">연결 끊기</span></button>
+  <button class="btn danger" id="btnStop"><svg class="i"><use href="#i-stop"/></svg><span data-i18n="hdr.stop">멈춰! (ESC)</span></button>
+  <button class="btn" id="btnLang" title="한국어 / English"><svg class="i"><use href="#i-globe"/></svg><span id="btnLangTxt">English</span></button>
 </header>
-<div class="warn" id="unsupported" data-i18n="warn.serial">이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.</div>
+<div class="warnbar" id="unsupported" data-i18n="warn.serial">이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.</div>
 
 <main>
   <!-- 좌: 로봇팔 -->
   <div class="col">
-    <section class="box arm" style="flex:1 1 auto">
-      <h2><span data-i18n="arm.title">🦾 로봇팔 (ch1-4)</span><span class="sp"></span><label class="hopt"><input type="checkbox" id="liveArm" checked><span data-i18n="arm.live">실시간</span></label></h2>
-      <div class="inner">
+    <section class="card" style="flex:1 1 auto">
+      <h2><svg class="i"><use href="#i-bot"/></svg><span data-i18n="arm.title">로봇팔 (ch1-4)</span><span class="sp"></span><label class="opt"><input type="checkbox" id="liveArm" checked><span data-i18n="arm.live">실시간</span></label></h2>
+      <div class="body">
         <div class="strip arm" data-ch="1"><label for="j1" data-i18n="j1">회전</label><input type="range" id="j1" min="0" max="180" value="90">
-          <button class="nb" data-ch="1" data-dir="-1">−</button>
+          <button class="nb" data-ch="1" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
           <span class="rd"><input id="v1" type="number" min="0" max="180" value="90"><span class="sub" id="u1"></span></span>
-          <button class="nb" data-ch="1" data-dir="1">+</button></div>
+          <button class="nb" data-ch="1" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
         <div class="strip arm" data-ch="2"><label for="j2" data-i18n="j2">어깨</label><input type="range" id="j2" min="0" max="180" value="90">
-          <button class="nb" data-ch="2" data-dir="-1">−</button>
+          <button class="nb" data-ch="2" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
           <span class="rd"><input id="v2" type="number" min="0" max="180" value="90"><span class="sub" id="u2"></span></span>
-          <button class="nb" data-ch="2" data-dir="1">+</button></div>
+          <button class="nb" data-ch="2" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
         <div class="strip arm" data-ch="3"><label for="j3" data-i18n="j3">팔꿈치</label><input type="range" id="j3" min="0" max="180" value="90">
-          <button class="nb" data-ch="3" data-dir="-1">−</button>
+          <button class="nb" data-ch="3" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
           <span class="rd"><input id="v3" type="number" min="0" max="180" value="90"><span class="sub" id="u3"></span></span>
-          <button class="nb" data-ch="3" data-dir="1">+</button></div>
+          <button class="nb" data-ch="3" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
         <div class="strip arm" data-ch="4"><label for="j4" data-i18n="j4">집게</label><input type="range" id="j4" min="0" max="180" value="90">
-          <button class="nb" data-ch="4" data-dir="-1">−</button>
+          <button class="nb" data-ch="4" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
           <span class="rd"><input id="v4" type="number" min="0" max="180" value="90"><span class="sub" id="u4"></span></span>
-          <button class="nb" data-ch="4" data-dir="1">+</button></div>
-        <p class="note" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)</p>
-        <div class="btns">
-          <button class="k big grow" id="btnArmMove" data-i18n="arm.move">🚀 이 자세로 가기</button>
-          <button class="k sun" id="btnArmHome" data-i18n="arm.home">🏠 집으로</button>
-          <button class="k" id="btnReset" data-i18n="arm.reset" data-i18n-title="arm.resetTitle">처음 자세</button>
+          <button class="nb" data-ch="4" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
+        <p class="hint" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)</p>
+        <div class="row">
+          <button class="btn primary grow" id="btnArmMove"><svg class="i"><use href="#i-arrow-right"/></svg><span data-i18n="arm.move">이 자세로 가기</span></button>
+          <button class="btn" id="btnArmHome"><svg class="i"><use href="#i-home"/></svg><span data-i18n="arm.home">집으로</span></button>
+          <button class="btn" id="btnReset" data-i18n-title="arm.resetTitle"><svg class="i"><use href="#i-refresh"/></svg><span data-i18n="arm.reset">처음 자세</span></button>
         </div>
-        <div class="btns">
-          <button class="k" id="btnOff" data-i18n="arm.off">💤 힘 빼기</button>
-          <button class="k" id="btnOn" data-i18n="arm.on">💪 힘 주기</button>
+        <div class="row">
+          <button class="btn" id="btnOff"><svg class="i"><use href="#i-moon"/></svg><span data-i18n="arm.off">힘 빼기</span></button>
+          <button class="btn" id="btnOn"><svg class="i"><use href="#i-zap"/></svg><span data-i18n="arm.on">힘 주기</span></button>
         </div>
-        <div class="sep"></div>
-        <div class="ln">
-          <span data-i18n="spd.label">🐢🐇 속도</span>
+        <div class="hr"></div>
+        <div class="section-title"><svg class="i sm"><use href="#i-gauge"/></svg><span data-i18n="spd.label">속도</span></div>
+        <div class="row">
           <select id="spdJoint"><option value="1">ch1</option><option value="2">ch2</option><option value="3">ch3</option><option value="4">ch4</option><option value="5">ch6</option></select>
-          <input type="number" id="spdVal" min="1" max="720" value="60"><span data-i18n="spd.unit">도/초</span>
-          <button class="k" id="btnSpeed" data-i18n="spd.send">적용</button>
-          <label style="margin-left:auto"><input type="checkbox" id="easing" checked><span data-i18n="spd.ease">부드럽게</span></label>
+          <input type="number" class="num" id="spdVal" min="1" max="720" value="60"><span class="label" data-i18n="spd.unit">도/초</span>
+          <button class="btn" id="btnSpeed" data-i18n="spd.send">적용</button>
+          <label class="field" style="margin-left:auto"><input type="checkbox" id="easing" checked><span data-i18n="spd.ease">부드럽게</span></label>
         </div>
-        <div class="sep"></div>
-        <div class="ln">
-          <span data-i18n="pose.title">⭐ 자세 저장</span>
-          <input type="text" id="presetName" data-i18n-placeholder="pose.ph" placeholder="자세 이름" style="width:88px">
-          <button class="k" id="btnPresetSave" data-i18n="pose.save">지금 자세 저장</button>
+        <div class="hr"></div>
+        <div class="section-title"><svg class="i sm"><use href="#i-star"/></svg><span data-i18n="pose.title">자세 저장</span></div>
+        <div class="row">
+          <input type="text" id="presetName" data-i18n-placeholder="pose.ph" placeholder="자세 이름" style="width:110px">
+          <button class="btn" id="btnPresetSave"><svg class="i"><use href="#i-plus"/></svg><span data-i18n="pose.save">지금 자세 저장</span></button>
         </div>
         <div class="chips" id="presets"></div>
-        <p class="note" data-i18n="pose.note">Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요</p>
-        <div class="btns">
-          <button class="k" id="btnPoseFileSave" data-i18n="pose.fileSave">pose.json 저장</button>
-          <button class="k" id="btnPoseFileLoad" data-i18n="pose.fileLoad">불러오기</button>
+        <p class="hint" data-i18n="pose.note">Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요</p>
+        <div class="row">
+          <button class="btn sm" id="btnPoseFileSave"><svg class="i sm"><use href="#i-download"/></svg><span data-i18n="pose.fileSave">pose.json 저장</span></button>
+          <button class="btn sm" id="btnPoseFileLoad"><svg class="i sm"><use href="#i-upload"/></svg><span data-i18n="pose.fileLoad">불러오기</span></button>
           <input type="file" id="poseFileIn" accept=".json">
         </div>
-        <div class="sep"></div>
-        <div class="btns">
-          <button class="k grn" id="btnCalib" data-i18n="cal.btn">영점 맞추기</button>
-          <button class="k danger" id="btnCalibReset" hidden data-i18n="cal.reset">보정값 지우기</button>
-          <span class="note" id="calibTxt" style="margin-left:auto"></span>
+        <div class="hr"></div>
+        <div class="row">
+          <button class="btn success" id="btnCalib"><svg class="i"><use href="#i-crosshair"/></svg><span data-i18n="cal.btn">영점 맞추기</span></button>
+          <button class="btn outline-danger" id="btnCalibReset" hidden><svg class="i"><use href="#i-eraser"/></svg><span data-i18n="cal.reset">보정값 지우기</span></button>
+          <span class="hint" id="calibTxt" style="margin-left:auto"></span>
         </div>
-        <p class="note" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
+        <p class="hint" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
       </div>
     </section>
   </div>
 
-  <!-- 중: 3D + 타임라인 + 계기판 -->
+  <!-- 중: 3D + 타임라인 -->
   <div class="col">
-    <section class="box" style="flex:1 1 auto">
-      <h2><span data-i18n="view.title">👀 3D 공장 보기</span><span class="sp"></span><span class="hopt" data-i18n="view.echo">명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)</span></h2>
+    <section class="card" style="flex:1 1 auto">
+      <h2><svg class="i"><use href="#i-cube"/></svg><span data-i18n="view.title">3D 공장 보기</span><span class="sp"></span><span class="meta" data-i18n="view.echo">명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)</span></h2>
       <div class="view" id="sceneBox">
         <canvas id="sim"></canvas>
         <div class="hud"><span id="fpsTxt">FPS --</span> · <span data-i18n="view.hud">왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기</span></div>
         <div class="tip" id="tip"></div>
       </div>
-      <div class="viewbar">
-        <span data-i18n="view.label">보기</span>
-        <button class="k" data-cam="all" data-i18n="view.all">전체</button>
-        <button class="k" data-cam="arm" data-i18n="view.arm">로봇팔</button>
-        <button class="k" data-cam="belt" data-i18n="view.belt">벨트</button>
-        <button class="k" data-cam="flag" data-i18n="view.flag">차단봉</button>
-        <button class="k" data-cam="top" data-i18n="view.top">위에서</button>
+      <div class="toolbar">
+        <span class="seg">
+          <button class="btn" data-cam="all" data-i18n="view.all">전체</button>
+          <button class="btn" data-cam="arm" data-i18n="view.arm">로봇팔</button>
+          <button class="btn" data-cam="belt" data-i18n="view.belt">벨트</button>
+          <button class="btn" data-cam="flag" data-i18n="view.flag">차단봉</button>
+          <button class="btn" data-cam="top" data-i18n="view.top">위에서</button>
+        </span>
         <span class="vsep"></span>
-        <button class="k on" id="btnGrid" data-i18n="view.grid">바닥선</button>
-        <button class="k" id="btnWire" data-i18n="view.wire">뼈대</button>
-        <button class="k" id="btnAxes" data-i18n="view.axes">회전축</button>
-        <button class="k" id="btnShot" data-i18n="view.shot">📷 사진</button>
-        <label style="margin-left:auto"><span data-i18n="view.zoom">확대</span>
-        <input type="range" id="camZoom" min="0.15" max="10" step="0.05" value="1.6">
-        <span id="camZoomTxt">1.6x</span></label>
+        <button class="btn sm on" id="btnGrid"><svg class="i sm"><use href="#i-grid"/></svg><span data-i18n="view.grid">바닥선</span></button>
+        <button class="btn sm" id="btnWire"><svg class="i sm"><use href="#i-cube"/></svg><span data-i18n="view.wire">뼈대</span></button>
+        <button class="btn sm" id="btnAxes"><svg class="i sm"><use href="#i-axes"/></svg><span data-i18n="view.axes">회전축</span></button>
+        <button class="btn sm" id="btnShot"><svg class="i sm"><use href="#i-camera"/></svg><span data-i18n="view.shot">사진</span></button>
+        <label class="field" style="margin-left:auto"><svg class="i sm"><use href="#i-zoom"/></svg>
+          <input type="range" id="camZoom" min="0.15" max="10" step="0.05" value="1.6">
+          <span id="camZoomTxt" style="font-family:var(--mono);min-width:34px">1.6x</span></label>
       </div>
     </section>
 
-    <section class="box" style="flex:0 0 auto">
-      <h2><span data-i18n="tl.title">🎬 동작 타임라인 (ch1-4)</span><span class="sp"></span><span class="hopt" id="tlKfCount">장면 0개</span></h2>
-      <div class="tlbar">
-        <button class="k" id="tlToStart" data-i18n-title="tl.toStart">|◀</button>
-        <button class="k" id="tlPlay" data-i18n-title="tl.play">▶</button>
-        <button class="k" id="tlStop" data-i18n-title="tl.stop">■</button>
+    <section class="card" style="flex:0 0 auto">
+      <h2><svg class="i"><use href="#i-film"/></svg><span data-i18n="tl.title">동작 타임라인 (ch1-4)</span><span class="sp"></span><span class="meta" id="tlKfCount">장면 0개</span></h2>
+      <div class="toolbar">
+        <button class="btn icon" id="tlToStart" data-i18n-title="tl.toStart"><svg class="i"><use href="#i-skip-back"/></svg></button>
+        <button class="btn icon" id="tlPlay" data-i18n-title="tl.play"><svg class="i fill" id="icPlay"><use href="#i-play"/></svg><svg class="i fill" id="icPause" hidden><use href="#i-pause"/></svg></button>
+        <button class="btn icon" id="tlStop" data-i18n-title="tl.stop"><svg class="i fill"><use href="#i-square"/></svg></button>
         <span class="tltime" id="tlTime">0.00s</span>
         <span class="vsep"></span>
-        <button class="k sun" id="tlAdd" data-i18n="tl.add">+ 장면 추가</button>
-        <button class="k" id="tlDel" data-i18n="tl.del">✕ 지우기</button>
+        <button class="btn primary" id="tlAdd"><svg class="i"><use href="#i-plus"/></svg><span data-i18n="tl.add">장면 추가</span></button>
+        <button class="btn" id="tlDel"><svg class="i"><use href="#i-trash"/></svg><span data-i18n="tl.del">지우기</span></button>
         <span class="vsep"></span>
-        <span data-i18n="tl.len">길이</span> <input type="number" id="tlDur" value="30" min="1" max="120" step="1">s
-        <span data-i18n="tl.speed">빠르기</span> <select id="tlSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
-        <button class="k" id="tlLoop" data-i18n="tl.loop">반복</button>
+        <label class="field"><span data-i18n="tl.len">길이</span><input type="number" id="tlDur" value="30" min="1" max="120" step="1" style="width:56px">s</label>
+        <label class="field"><span data-i18n="tl.speed">빠르기</span><select id="tlSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+        <button class="btn" id="tlLoop"><svg class="i"><use href="#i-repeat"/></svg><span data-i18n="tl.loop">반복</span></button>
         <span class="vsep"></span>
-        <button class="k" id="tlSave" data-i18n="tl.save">motion.txt 저장</button>
-        <button class="k" id="tlLoad" data-i18n="tl.load">불러오기</button>
+        <button class="btn sm" id="tlSave"><svg class="i sm"><use href="#i-download"/></svg><span data-i18n="tl.save">motion.txt 저장</span></button>
+        <button class="btn sm" id="tlLoad"><svg class="i sm"><use href="#i-upload"/></svg><span data-i18n="tl.load">불러오기</span></button>
         <input type="file" id="motionFileIn" accept=".txt,.json">
       </div>
       <div class="tlwrap" id="tlWrap"><canvas id="tlCanvas"></canvas></div>
     </section>
-
   </div>
 
   <!-- 우: 컨베이어 + 순서 + 대화 -->
   <div class="col">
-    <section class="box conv" style="flex:0 0 auto">
-      <h2 data-i18n="conv.title">🏭 컨베이어 (ch5-6)</h2>
-      <div class="inner">
+    <section class="card" style="flex:0 0 auto">
+      <h2><svg class="i"><use href="#i-belt"/></svg><span data-i18n="conv.title">컨베이어 (ch5-6)</span></h2>
+      <div class="body">
         <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="0" max="90" value="45">
           <span class="rd"><input id="rollerVal" type="number" min="0" max="90" value="45"><span class="sub" id="u5"></span></span></div>
-        <div class="btns">
-          <button class="k big grow" id="btnBeltFwd" data-i18n="conv.fwd">▶ 앞으로</button>
-          <button class="k big grow" id="btnBeltBack" data-i18n="conv.back">◀ 뒤로</button>
-          <button class="k" id="btnRollerStop" data-i18n="conv.stop">■ 멈춤</button>
+        <div class="row">
+          <button class="btn primary grow" id="btnBeltFwd"><svg class="i"><use href="#i-arrow-right"/></svg><span data-i18n="conv.fwd">앞으로</span></button>
+          <button class="btn primary grow" id="btnBeltBack"><svg class="i"><use href="#i-arrow-left"/></svg><span data-i18n="conv.back">뒤로</span></button>
+          <button class="btn" id="btnRollerStop"><svg class="i fill"><use href="#i-square"/></svg><span data-i18n="conv.stop">멈춤</span></button>
         </div>
-        <div class="sep"></div>
+        <div class="hr"></div>
         <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
           <span class="rd"><input id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
-        <p class="note" data-i18n="conv.flagNote">0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)</p>
+        <p class="hint" data-i18n="conv.flagNote">0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)</p>
       </div>
     </section>
 
-    <section class="box seq" style="flex:0 0 auto">
-      <h2><span data-i18n="seq.title">📝 순서대로 시키기</span><span class="sp"></span><button class="k" id="btnSeqExample" data-i18n="seq.example">예제 넣기</button></h2>
-      <div class="inner">
+    <section class="card" style="flex:0 0 auto">
+      <h2><svg class="i"><use href="#i-list"/></svg><span data-i18n="seq.title">순서대로 시키기</span><span class="sp"></span><button class="btn sm ghost" id="btnSeqExample"><svg class="i sm"><use href="#i-bulb"/></svg><span data-i18n="seq.example">예제 넣기</span></button></h2>
+      <div class="body">
         <textarea class="seq" id="seq" spellcheck="false" placeholder="pose home
 waitdone
 #m1:45,1500!
 wait 1600
 #m2:90,1200!"></textarea>
-        <div class="btns">
-          <button class="k leaf" id="btnSeqRun" data-i18n="seq.run">▶ 실행</button>
-          <button class="k" id="btnSeqStop" disabled data-i18n="seq.stop">■ 멈춤</button>
-          <label class="ln" style="margin:0"><input type="checkbox" id="seqLoop"><span data-i18n="seq.loop">반복</span></label>
-          <span class="note" style="margin-left:auto">wait N / waitdone / pose</span>
+        <div class="row">
+          <button class="btn primary" id="btnSeqRun"><svg class="i fill"><use href="#i-play"/></svg><span data-i18n="seq.run">실행</span></button>
+          <button class="btn" id="btnSeqStop" disabled><svg class="i fill"><use href="#i-square"/></svg><span data-i18n="seq.stop">멈춤</span></button>
+          <label class="field"><input type="checkbox" id="seqLoop"><span data-i18n="seq.loop">반복</span></label>
+          <span class="hint" style="margin-left:auto;font-family:var(--mono)">wait N / waitdone / pose</span>
         </div>
       </div>
     </section>
 
-    <section class="box" style="flex:1 1 auto">
-      <h2><span data-i18n="term.title">💬 로봇과 대화하기</span><span class="sp"></span><button class="k" id="btnPos" data-i18n="term.pos">#pos 어디니?</button><button class="k" id="btnClear" data-i18n="term.clear">지우기</button></h2>
+    <section class="card" style="flex:1 1 auto">
+      <h2><svg class="i"><use href="#i-chat"/></svg><span data-i18n="term.title">로봇과 대화하기</span><span class="sp"></span><button class="btn sm ghost" id="btnPos"><svg class="i sm"><use href="#i-pin"/></svg><span data-i18n="term.pos">#pos 어디니?</span></button><button class="btn sm ghost" id="btnClear"><svg class="i sm"><use href="#i-trash"/></svg><span data-i18n="term.clear">지우기</span></button></h2>
       <div class="tape" id="term"></div>
       <div class="send">
-        <input id="cmd" placeholder="#pos!  #map!  #m:90,45,120,90!" autocomplete="off">
-        <button class="k big" id="btnSend" data-i18n="term.send">보내기</button>
+        <input id="cmd" type="text" placeholder="#pos!  #map!  #m:90,45,120,90!" autocomplete="off">
+        <button class="btn primary" id="btnSend"><svg class="i"><use href="#i-send"/></svg><span data-i18n="term.send">보내기</span></button>
       </div>
     </section>
   </div>
@@ -434,38 +429,38 @@ wait 1600
     ko: {
       'app.title': '미니 로봇 공장 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
       'hdr.noboard': '로봇 연결 안 됨', 'hdr.idle': '쉬는 중', 'hdr.working': '일하는 중', 'hdr.released': '힘 빼기 상태', 'hdr.playing': '동작 재생 중',
-      'hdr.baud': '통신속도', 'hdr.autore': '자동 다시연결', 'hdr.connect': '🔌 로봇 연결', 'hdr.disconnect': '연결 끊기', 'hdr.stop': '🛑 멈춰! (ESC)',
-      'hdr.lang': '🌐 English',
+      'hdr.baud': '통신속도', 'hdr.autore': '자동 다시연결', 'hdr.connect': '로봇 연결', 'hdr.disconnect': '연결 끊기', 'hdr.stop': '멈춰! (ESC)',
+      'hdr.lang': 'English',
       'warn.serial': '이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.',
-      'arm.title': '🦾 로봇팔 (ch1-4)', 'arm.live': '실시간',
+      'arm.title': '로봇팔 (ch1-4)', 'arm.live': '실시간',
       'j1': '회전', 'j2': '어깨', 'j3': '팔꿈치', 'j4': '집게',
       'arm.note': '−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)',
-      'arm.move': '🚀 이 자세로 가기', 'arm.home': '🏠 집으로', 'arm.reset': '처음 자세', 'arm.resetTitle': 'ch1-3=90, 집게=0',
-      'arm.off': '💤 힘 빼기', 'arm.on': '💪 힘 주기',
-      'pose.title': '⭐ 자세 저장', 'pose.ph': '자세 이름', 'pose.save': '지금 자세 저장',
+      'arm.move': '이 자세로 가기', 'arm.home': '집으로', 'arm.reset': '처음 자세', 'arm.resetTitle': 'ch1-3=90, 집게=0',
+      'arm.off': '힘 빼기', 'arm.on': '힘 주기',
+      'pose.title': '자세 저장', 'pose.ph': '자세 이름', 'pose.save': '지금 자세 저장',
       'pose.note': 'Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요',
       'pose.fileSave': 'pose.json 저장', 'pose.fileLoad': '불러오기', 'pose.del': '(Shift+클릭: 지우기)',
       'cal.btn': '영점 맞추기', 'cal.reset': '보정값 지우기', 'cal.txt': '보정',
       'cal.help': '영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.',
-      'spd.label': '🐢🐇 속도', 'spd.unit': '도/초', 'spd.send': '적용', 'spd.ease': '부드럽게',
-      'view.title': '👀 3D 공장 보기', 'view.echo': '명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)',
+      'spd.label': '속도', 'spd.unit': '도/초', 'spd.send': '적용', 'spd.ease': '부드럽게',
+      'view.title': '3D 공장 보기', 'view.echo': '명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)',
       'view.hud': '왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기',
       'view.label': '보기', 'view.all': '전체', 'view.arm': '로봇팔', 'view.belt': '벨트', 'view.flag': '차단봉', 'view.top': '위에서',
-      'view.grid': '바닥선', 'view.wire': '뼈대', 'view.axes': '회전축', 'view.shot': '📷 사진', 'view.zoom': '확대',
-      'tl.title': '🎬 동작 타임라인 (ch1-4)', 'tl.kf': '장면 {n}개', 'tl.toStart': '처음으로', 'tl.play': '재생 / 잠깐 멈춤', 'tl.stop': '정지',
-      'tl.add': '+ 장면 추가', 'tl.del': '✕ 지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
+      'view.grid': '바닥선', 'view.wire': '뼈대', 'view.axes': '회전축', 'view.shot': '사진', 'view.zoom': '확대',
+      'tl.title': '동작 타임라인 (ch1-4)', 'tl.kf': '장면 {n}개', 'tl.toStart': '처음으로', 'tl.play': '재생 / 잠깐 멈춤', 'tl.stop': '정지',
+      'tl.add': '장면 추가', 'tl.del': '지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
       'row.cut': '꺼짐',
-      'conv.title': '🏭 컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.fwd': '▶ 앞으로', 'conv.back': '◀ 뒤로', 'conv.stop': '■ 멈춤',
+      'conv.title': '컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.fwd': '앞으로', 'conv.back': '뒤로', 'conv.stop': '멈춤',
       'conv.flag': '차단봉', 'conv.flagNote': '0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)',
-      'seq.title': '📝 순서대로 시키기', 'seq.example': '예제 넣기', 'seq.run': '▶ 실행', 'seq.stop': '■ 멈춤', 'seq.loop': '반복',
-      'term.title': '💬 로봇과 대화하기', 'term.pos': '#pos 어디니?', 'term.clear': '지우기', 'term.send': '보내기',
+      'seq.title': '순서대로 시키기', 'seq.example': '예제 넣기', 'seq.run': '실행', 'seq.stop': '멈춤', 'seq.loop': '반복',
+      'term.title': '로봇과 대화하기', 'term.pos': '#pos 어디니?', 'term.clear': '지우기', 'term.send': '보내기',
       'lbl.arm': '로봇팔 ch1-4', 'lbl.belt': '벨트 ch5', 'lbl.flag': '차단봉 ch6',
       'port.generic': '직렬 포트', 'log.viewOnly': '(3D만)', 'log.preCal': '(보정 전 {cmd})',
       'log.ready': '준비 완료! 로봇이 없어도 3D 로 미리 볼 수 있어요.',
       'log.connected': '로봇 연결됨 · {info} · {baud}baud', 'log.connFail': '연결 실패: {msg}',
       'log.autoRe': '[자동 다시연결] {info}', 'log.autoReFail': '자동 다시연결 실패: {msg}',
       'log.disconnected': '연결이 끊어졌어요', 'log.detached': '로봇이 빠졌어요', 'log.rxErr': '받기 오류: {msg}', 'log.txFail': '보내기 실패: {msg}',
-      'log.seqEmpty': '순서가 비어 있어요', 'log.seqStart': '순서 시작!', 'log.seqStopped': '순서 멈춤', 'log.seqDone': '순서 끝! 잘했어요 👏',
+      'log.seqEmpty': '순서가 비어 있어요', 'log.seqStart': '순서 시작!', 'log.seqStopped': '순서 멈춤', 'log.seqDone': '순서 끝! 잘했어요',
       'log.poseMissing': '그런 자세가 없어요: {name}', 'log.parseFail': '이해 못 했어요: {line}',
       'log.needKf': '먼저 장면을 추가하세요', 'log.motionSaved': 'motion.txt 저장 (장면 {n}개)', 'log.motionLoaded': '{name} 불러옴 (장면 {n}개, {dur}s)', 'log.motionErr': '동작 파일 해석 실패: {msg}',
       'log.poseName': '자세 이름을 적어 주세요', 'log.poseLoaded': '{name} 불러옴: {v}', 'log.poseErr': 'pose.json 해석 실패: {msg}',
@@ -476,38 +471,38 @@ wait 1600
     en: {
       'app.title': 'Mini Robot Factory Control Room', 'app.sub': 'Arm 4ch + Conveyor 2ch',
       'hdr.noboard': 'No robot', 'hdr.idle': 'Resting', 'hdr.working': 'Working', 'hdr.released': 'Relaxed (torque off)', 'hdr.playing': 'Playing motion',
-      'hdr.baud': 'Baud', 'hdr.autore': 'Auto reconnect', 'hdr.connect': '🔌 Connect', 'hdr.disconnect': 'Disconnect', 'hdr.stop': '🛑 STOP (ESC)',
-      'hdr.lang': '🌐 한국어',
+      'hdr.baud': 'Baud', 'hdr.autore': 'Auto reconnect', 'hdr.connect': 'Connect', 'hdr.disconnect': 'Disconnect', 'hdr.stop': 'STOP (ESC)',
+      'hdr.lang': '한국어',
       'warn.serial': "This browser can't talk to the robot (no Web Serial). You can still use the 3D view. Use Chrome / Edge to drive the real robot.",
-      'arm.title': '🦾 Robot Arm (ch1-4)', 'arm.live': 'LIVE',
+      'arm.title': 'Robot Arm (ch1-4)', 'arm.live': 'LIVE',
       'j1': 'Turn', 'j2': 'Shoulder', 'j3': 'Elbow', 'j4': 'Gripper',
       'arm.note': '−/+ moves 1°, hold to keep going · Gripper 0=wide open(45mm) 180=closed(15mm)',
-      'arm.move': '🚀 Go to this pose', 'arm.home': '🏠 Home', 'arm.reset': 'Start pose', 'arm.resetTitle': 'ch1-3=90, gripper=0',
-      'arm.off': '💤 Relax', 'arm.on': '💪 Hold',
-      'pose.title': '⭐ Saved poses', 'pose.ph': 'pose name', 'pose.save': 'Save this pose',
+      'arm.move': 'Go to this pose', 'arm.home': 'Home', 'arm.reset': 'Start pose', 'arm.resetTitle': 'ch1-3=90, gripper=0',
+      'arm.off': 'Relax', 'arm.on': 'Hold',
+      'pose.title': 'Saved poses', 'pose.ph': 'pose name', 'pose.save': 'Save this pose',
       'pose.note': 'Shift+click = delete · call it in the step program with "pose name"',
       'pose.fileSave': 'Save pose.json', 'pose.fileLoad': 'Load', 'pose.del': '(Shift+click: delete)',
       'cal.btn': 'Zero calibration', 'cal.reset': 'Clear offsets', 'cal.txt': 'Offset',
       'cal.help': 'Zero mode: −/+ changes the ch1-3 offset by 1° (applied only to what is sent to the real robot, saved in the browser). Adjust until the robot stands straight.',
-      'spd.label': '🐢🐇 Speed', 'spd.unit': 'deg/s', 'spd.send': 'Apply', 'spd.ease': 'Smooth',
-      'view.title': '👀 3D Factory View', 'view.echo': 'Shows what you commanded (not the real position)',
+      'spd.label': 'Speed', 'spd.unit': 'deg/s', 'spd.send': 'Apply', 'spd.ease': 'Smooth',
+      'view.title': '3D Factory View', 'view.echo': 'Shows what you commanded (not the real position)',
       'view.hud': 'Left drag: orbit · Right/Shift: pan · Wheel: zoom · Click: pick a part',
       'view.label': 'View', 'view.all': 'All', 'view.arm': 'Arm', 'view.belt': 'Belt', 'view.flag': 'Gate', 'view.top': 'Top',
-      'view.grid': 'Grid', 'view.wire': 'Wire', 'view.axes': 'Axes', 'view.shot': '📷 Snapshot', 'view.zoom': 'Zoom',
-      'tl.title': '🎬 Motion Timeline (ch1-4)', 'tl.kf': '{n} keyframes', 'tl.toStart': 'To start', 'tl.play': 'Play / pause', 'tl.stop': 'Stop',
-      'tl.add': '+ Add keyframe', 'tl.del': '✕ Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
+      'view.grid': 'Grid', 'view.wire': 'Wire', 'view.axes': 'Axes', 'view.shot': 'Snapshot', 'view.zoom': 'Zoom',
+      'tl.title': 'Motion Timeline (ch1-4)', 'tl.kf': '{n} keyframes', 'tl.toStart': 'To start', 'tl.play': 'Play / pause', 'tl.stop': 'Stop',
+      'tl.add': 'Add keyframe', 'tl.del': 'Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
       'row.cut': 'Off',
-      'conv.title': '🏭 Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.fwd': '▶ Forward', 'conv.back': '◀ Backward', 'conv.stop': '■ Stop',
+      'conv.title': 'Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.fwd': 'Forward', 'conv.back': 'Backward', 'conv.stop': 'Stop',
       'conv.flag': 'Gate', 'conv.flagNote': '0 = block the belt · +90 = open (moves as soon as you release the slider)',
-      'seq.title': '📝 Step Program', 'seq.example': 'Example', 'seq.run': '▶ Run', 'seq.stop': '■ Stop', 'seq.loop': 'Loop',
-      'term.title': '💬 Talk to Robot', 'term.pos': '#pos where?', 'term.clear': 'Clear', 'term.send': 'Send',
+      'seq.title': 'Step Program', 'seq.example': 'Example', 'seq.run': 'Run', 'seq.stop': 'Stop', 'seq.loop': 'Loop',
+      'term.title': 'Talk to Robot', 'term.pos': '#pos where?', 'term.clear': 'Clear', 'term.send': 'Send',
       'lbl.arm': 'ARM ch1-4', 'lbl.belt': 'BELT ch5', 'lbl.flag': 'GATE ch6',
       'port.generic': 'Serial port', 'log.viewOnly': '(3D only)', 'log.preCal': '(before offset {cmd})',
       'log.ready': 'Ready! You can preview in 3D even without a robot.',
       'log.connected': 'Robot connected · {info} · {baud}baud', 'log.connFail': 'Connect failed: {msg}',
       'log.autoRe': '[auto reconnect] {info}', 'log.autoReFail': 'Auto reconnect failed: {msg}',
       'log.disconnected': 'Disconnected', 'log.detached': 'Robot unplugged', 'log.rxErr': 'Receive error: {msg}', 'log.txFail': 'Send failed: {msg}',
-      'log.seqEmpty': 'The program is empty', 'log.seqStart': 'Program started!', 'log.seqStopped': 'Program stopped', 'log.seqDone': 'Program finished! Nice job 👏',
+      'log.seqEmpty': 'The program is empty', 'log.seqStart': 'Program started!', 'log.seqStopped': 'Program stopped', 'log.seqDone': 'Program finished! Nice job',
       'log.poseMissing': 'No such pose: {name}', 'log.parseFail': "I don't understand: {line}",
       'log.needKf': 'Add a keyframe first', 'log.motionSaved': 'motion.txt saved ({n} keyframes)', 'log.motionLoaded': '{name} loaded ({n} keyframes, {dur}s)', 'log.motionErr': 'Motion file error: {msg}',
       'log.poseName': 'Type a pose name first', 'log.poseLoaded': '{name} loaded: {v}', 'log.poseErr': 'pose.json error: {msg}',
@@ -529,7 +524,7 @@ wait 1600
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
     document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
-    $('btnLang').textContent = t('hdr.lang');
+    $('btnLangTxt').textContent = t('hdr.lang');
     setConnected(!!port, port ? describePort(port) : '');
     kfCount(); renderPoses(); relabel3d();
   }
@@ -631,7 +626,7 @@ wait 1600
   function makeLabelTexture(text, color) {
     const c = document.createElement('canvas'); c.width = 320; c.height = 80;
     const g = c.getContext('2d');
-    g.font = '800 30px Nunito, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+    g.font = '700 30px "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
     const w = Math.min(310, g.measureText(text).width + 40);
     g.fillStyle = 'rgba(255,255,255,.92)';
     g.beginPath(); g.roundRect((320 - w) / 2, 12, w, 56, 28); g.fill();
@@ -976,7 +971,7 @@ wait 1600
   }
   function setPlay(on) {
     tl.playing = on; tl.last = null;
-    $('tlPlay').textContent = on ? '❚❚' : '▶';
+    $('icPlay').hidden = on; $('icPause').hidden = !on;
     $('tlPlay').classList.toggle('on', on);
   }
   function tlTick(now) {
@@ -999,7 +994,7 @@ wait 1600
     g.clearRect(0, 0, W, H);
     g.fillStyle = '#f4f7fd'; g.fillRect(0, 0, W, H);
     const step = tl.dur <= 30 ? 1 : tl.dur <= 60 ? 2 : 5;
-    g.font = '500 9px "DM Mono", "Courier New", monospace';
+    g.font = '500 9px "JetBrains Mono", "Courier New", monospace';
     for (let tt = 0; tt <= tl.dur; tt += step) {
       const x = Math.round(tToX(tt)) + .5;
       g.strokeStyle = tt % 5 === 0 ? '#c9d5e8' : '#e3eaf5'; g.lineWidth = 1;
@@ -1356,7 +1351,7 @@ wait 1600
     const box = $('presets'); box.innerHTML = '';
     for (const [name, v] of Object.entries(poses)) {
       const b = document.createElement('button');
-      b.className = 'k'; b.textContent = name; b.title = v.join(',') + '  ' + t('pose.del');
+      b.className = 'btn'; b.textContent = name; b.title = v.join(',') + '  ' + t('pose.del');
       b.onclick = ev => {
         if (ev.shiftKey) { delete poses[name]; savePoses(); return; }
         setPlay(false);
