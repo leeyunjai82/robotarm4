@@ -58,7 +58,7 @@
         <button class="nb" data-ch="4" data-dir="-1" aria-label="-1"><i class="fa-solid fa-minus"></i></button>
         <span class="rd"><input class="inp" id="v4" type="number" min="0" max="180" value="90"><span class="sub" id="u4"></span></span>
         <button class="nb" data-ch="4" data-dir="1" aria-label="+1"><i class="fa-solid fa-plus"></i></button></div>
-      <div class="hint" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)</div>
+      <div class="hint" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(약 22mm)</div>
       <div class="row">
         <button class="db go grow" id="btnArmMove"><i class="fa-solid fa-arrow-right"></i><span data-i18n="arm.move">이 자세로 가기</span></button>
         <button class="db" id="btnArmHome"><i class="fa-solid fa-house"></i><span data-i18n="arm.home">집으로</span></button>
@@ -165,13 +165,14 @@
     <div class="pan" style="flex:0 0 auto">
       <div class="ph"><i class="fa-solid fa-industry"></i><span data-i18n="conv.title">컨베이어 (ch5-6)</span></div>
       <div class="pb">
-        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="0" max="90" value="45">
-          <span class="rd"><input class="inp" id="rollerVal" type="number" min="0" max="90" value="45"><span class="sub" id="u5"></span></span></div>
+        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="25" max="50" value="45">
+          <span class="rd"><input class="inp" id="rollerVal" type="number" min="25" max="50" value="45"><span class="sub" id="u5"></span></span></div>
         <div class="row">
           <button class="db go grow" id="btnBeltFwd"><i class="fa-solid fa-arrow-right"></i><span data-i18n="conv.fwd">앞으로</span></button>
           <button class="db go grow" id="btnBeltBack"><i class="fa-solid fa-arrow-left"></i><span data-i18n="conv.back">뒤로</span></button>
           <button class="db" id="btnRollerStop"><i class="fa-solid fa-stop"></i><span data-i18n="conv.stop">멈춤</span></button>
         </div>
+        <div class="hint" data-i18n="conv.rollNote">벨트 빠르기는 25~50 사이만 돼요 (그 아래는 모터가 안 돌아요)</div>
         <div class="sec2">
           <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
             <span class="rd"><input class="inp" id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
@@ -242,7 +243,7 @@ wait 1600
       'warn.serial': '이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.',
       'arm.title': '로봇팔 (ch1-4)', 'arm.live': '실시간',
       'j1': '회전', 'j2': '어깨', 'j3': '팔꿈치', 'j4': '집게',
-      'arm.note': '−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)',
+      'arm.note': '−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(약 22mm)',
       'arm.move': '이 자세로 가기', 'arm.home': '집으로', 'arm.reset': '처음 자세', 'arm.resetTitle': 'ch1-3=90, 집게=0',
       'arm.off': '힘 빼기', 'arm.on': '힘 주기',
       'pose.title': '자세 저장', 'pose.ph': '자세 이름', 'pose.save': '지금 자세 저장',
@@ -259,7 +260,7 @@ wait 1600
       'tl.add': '장면 추가', 'tl.del': '지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
       'row.cut': '꺼짐',
       'conv.title': '컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.fwd': '앞으로', 'conv.back': '뒤로', 'conv.stop': '멈춤',
-      'conv.flag': '차단봉', 'conv.flagNote': '0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)',
+      'conv.flag': '차단봉', 'conv.flagNote': '0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)', 'conv.rollNote': '벨트 빠르기는 25~50 사이만 돼요 (그 아래는 모터가 안 돌아요)',
       'seq.title': '순서대로 시키기', 'seq.example': '예제 넣기', 'seq.run': '실행', 'seq.stop': '멈춤', 'seq.loop': '반복',
       'term.title': '로봇과 대화하기', 'term.pos': '#pos 어디니?', 'term.clear': '지우기', 'term.send': '보내기',
       'lbl.arm': '로봇팔 ch1-4', 'lbl.belt': '벨트 ch5', 'lbl.flag': '차단봉 ch6',
@@ -284,7 +285,7 @@ wait 1600
       'warn.serial': "This browser can't talk to the robot (no Web Serial). You can still use the 3D view. Use Chrome / Edge to drive the real robot.",
       'arm.title': 'Robot Arm (ch1-4)', 'arm.live': 'LIVE',
       'j1': 'Turn', 'j2': 'Shoulder', 'j3': 'Elbow', 'j4': 'Gripper',
-      'arm.note': '−/+ moves 1°, hold to keep going · Gripper 0=wide open(45mm) 180=closed(15mm)',
+      'arm.note': '−/+ moves 1°, hold to keep going · Gripper 0=wide open(45mm) 180=closed(about 22mm)',
       'arm.move': 'Go to this pose', 'arm.home': 'Home', 'arm.reset': 'Start pose', 'arm.resetTitle': 'ch1-3=90, gripper=0',
       'arm.off': 'Relax', 'arm.on': 'Hold',
       'pose.title': 'Saved poses', 'pose.ph': 'pose name', 'pose.save': 'Save this pose',
@@ -301,7 +302,7 @@ wait 1600
       'tl.add': 'Add keyframe', 'tl.del': 'Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
       'row.cut': 'Off',
       'conv.title': 'Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.fwd': 'Forward', 'conv.back': 'Backward', 'conv.stop': 'Stop',
-      'conv.flag': 'Gate', 'conv.flagNote': '0 = block the belt · +90 = open (moves as soon as you release the slider)',
+      'conv.flag': 'Gate', 'conv.flagNote': '0 = block the belt · +90 = open (moves as soon as you release the slider)', 'conv.rollNote': 'Belt speed works only between 25 and 50 (the motor does not turn below that)',
       'seq.title': 'Step Program', 'seq.example': 'Example', 'seq.run': 'Run', 'seq.stop': 'Stop', 'seq.loop': 'Loop',
       'term.title': 'Talk to Robot', 'term.pos': '#pos where?', 'term.clear': 'Clear', 'term.send': 'Send',
       'lbl.arm': 'ARM ch1-4', 'lbl.belt': 'BELT ch5', 'lbl.flag': 'GATE ch6',
@@ -651,7 +652,8 @@ wait 1600
     const l3s = label('lbl.flag', '#B4451C'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); conv.add(l3s);
   }
 
-  const gripGapMm = v => 45 - (v / 180) * 30;      // 0 = 열림 45mm, 180 = 닫힘 15mm
+  const GRIP_K = 135 / 180;                          // 실물 집게: 180° 지령 = 예전 135° 만큼만 닫힘
+  const gripGapMm = v => 45 - (v * GRIP_K / 180) * 30; // 0 = 열림 45mm, 180 = 약 22mm
 
   /* --- 카메라 --- */
   // 카메라는 +z(팔 쪽)에서 -z 방향을 봄 → 화면 오른쪽 = +x, 화면 위 = -z(차단봉 쪽)
@@ -694,7 +696,7 @@ wait 1600
     parts.yaw.rotation.y = (j1 - 90) * Math.PI / 180;
     parts.link1.rotation.z = -(j2 - 90) * Math.PI / 180;
     parts.link2.rotation.z = -(j3 - 90) * Math.PI / 180;
-    const open = (1 - j4 / 180) * 0.26 + 0.07;
+    const open = (1 - (j4 * GRIP_K) / 180) * 0.26 + 0.07;   // 실물은 180°에서도 다 안 닫힘 (GRIP_K)
     parts.jaws[0].position.z = -open; parts.jaws[1].position.z = open;
     // 차단봉: 0 = 벨트 가로질러 차단(+z 방향), +90 = 하류(+x)로 눕혀 개방.
     const rel = sim.joints[4].cur - 90;
@@ -1031,7 +1033,7 @@ wait 1600
       const f = +mm[2];
       sim.joints[4].cur = f + 90; sim.joints[4].to = f + 90; sim.joints[4].dur = 0;
       $('flag').value = $('flagVal').value = f;
-      sim.roller = +mm[3]; beltDir = Math.sign(sim.roller); if (sim.roller) $('roller').value = $('rollerVal').value = Math.abs(sim.roller);
+      sim.roller = +mm[3]; beltDir = Math.sign(sim.roller); if (sim.roller) $('roller').value = $('rollerVal').value = clamp(Math.abs(sim.roller), BELT_MIN, BELT_MAX);
     }
     if (/^\d$/.test(line)) busy = line === '1';
   }
@@ -1207,10 +1209,11 @@ wait 1600
     } catch (err) { log(t('log.poseErr', { msg: err.message }), 'err'); }
   });
 
-  // 컨베이어: 슬라이더 = 빠르기(0~90), 버튼 = 방향
+  // 컨베이어: 슬라이더 = 빠르기(25~50, 그 아래는 dead zone), 버튼 = 방향
+  const BELT_MIN = 25, BELT_MAX = 50;
   function beltGo(dir) {
     beltDir = dir;
-    const v = clamp(Math.round(Math.abs(+$('rollerVal').value) || 0), 0, 90);
+    const v = clamp(Math.round(Math.abs(+$('rollerVal').value) || BELT_MIN), BELT_MIN, BELT_MAX);   // 서보 dead zone: 25 미만은 안 돎
     $('roller').value = $('rollerVal').value = v;
     send(`#m1:${dir * v}!`);
   }
