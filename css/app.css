@@ -20,7 +20,7 @@ header .badge.busy i.dot{background:var(--acc)}
 
 /* ── 본문 3단 ── */
 .mk-main{padding-top:12px}
-.pan-side{width:300px}
+.pan-side{width:320px}
 .pan-out{width:340px}
 .pan > .pb{display:flex;flex-direction:column;gap:9px;min-height:0}
 .pan > .ph .sp{flex:1}
@@ -41,7 +41,15 @@ header .badge.busy i.dot{background:var(--acc)}
 /* ── 축 슬라이더 줄 ── */
 .strip{display:grid;grid-template-columns:58px 1fr 84px;align-items:center;gap:8px;
   padding:4px 6px;border-radius:8px;border:1px solid transparent}
-.strip.arm{grid-template-columns:58px 1fr 26px 74px 26px;gap:6px}
+.strip.arm{
+  /* 두 줄: 윗줄 이름 + 숫자, 아랫줄 − 슬라이더 + — 슬라이더가 패널 폭을 다 쓴다 */
+  grid-template-columns:26px 1fr 84px 26px;grid-template-rows:auto auto;gap:4px 6px;
+  grid-template-areas:"lab lab rd rd" "minus slider slider plus";padding:6px 6px 4px}
+.strip.arm label{grid-area:lab;align-self:end}
+.strip.arm input[type=range]{grid-area:slider;align-self:center}
+.strip.arm .rd{grid-area:rd;justify-self:end;width:84px}
+.strip.arm .nb[data-dir="-1"]{grid-area:minus}
+.strip.arm .nb[data-dir="1"]{grid-area:plus}
 .strip.hl{border-color:var(--acc);background:var(--acc-soft)}
 .strip label{font-size:12.5px;font-weight:700;color:var(--ink)}
 .rd{text-align:right;line-height:1.1}
