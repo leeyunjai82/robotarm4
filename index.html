@@ -421,7 +421,7 @@ wait 1600
   const HAS3D = typeof THREE !== 'undefined';
   /* 배치 (TOP 뷰 기준): 벨트는 좌→우(+x), 로봇팔은 벨트 중앙 앞쪽(+z, 화면 아래),
      차단봉은 벨트 건너편(-z, 화면 위) 상류 쪽(왼쪽) */
-  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.47 };  // top = 벨트 면 높이 = 로봇팔 첫 서보(ch1) 몸체 윗면 (0.09 + 0.38)
+  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.62 };  // top = 벨트 면 높이 = 어깨 서보(ch2) 회전축 높이 (yaw 0.09 + link1 0.53)
   const BASE = { x: 0, z: 2.0 };
   const L1 = 1.35, L2 = 1.05;
   const FLAG = { x: -1.5, z: -(BELT.w / 2 + 0.18), len: 1.18 };
