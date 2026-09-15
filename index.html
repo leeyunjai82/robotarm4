@@ -421,7 +421,7 @@ wait 1600
   const HAS3D = typeof THREE !== 'undefined';
   /* 배치 (TOP 뷰 기준): 벨트는 좌→우(+x), 로봇팔은 벨트 중앙 앞쪽(+z, 화면 아래),
      차단봉은 벨트 건너편(-z, 화면 위) 상류 쪽(왼쪽) */
-  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.92 };  // top = 벨트 면 높이 = 로봇팔 첫 서보(ch1) 윗면 (0.45 + 0.28 + 0.19)
+  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.47 };  // top = 벨트 면 높이 = 로봇팔 첫 서보(ch1) 몸체 윗면 (0.09 + 0.38)
   const BASE = { x: 0, z: 2.0 };
   const L1 = 1.35, L2 = 1.05;
   const FLAG = { x: -1.5, z: -(BELT.w / 2 + 0.18), len: 1.18 };
@@ -578,23 +578,26 @@ wait 1600
       const a = i * Math.PI / 2 + Math.PI / 4;
       P.add(bolt(Math.cos(a) * 0.5, 0.07, Math.sin(a) * 0.5));
     }
-    const column = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 0.34, 24), MAT.dark);
-    column.position.y = 0.23; P.add(column);
-    const bearing = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.05, 28), MAT.steel);
-    bearing.position.y = 0.42; P.add(bearing);
+    // 첫 서보의 혼(원판)은 바닥판에 고정 — 실물처럼 축이 아래를 향하고, 서보 몸체가 팔과 함께 돈다
+    const horn0 = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.03, 20), MAT.steel);
+    horn0.position.y = 0.075; P.add(horn0);
 
-    // ch1 베이스 요
-    parts.yaw = new THREE.Group(); parts.yaw.position.y = 0.45; P.add(parts.yaw);
-    const turn = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.07, 28), MAT.anod);
-    turn.position.y = 0.035; parts.yaw.add(turn);
-    const sv1 = servoBlock(0.95); sv1.position.set(-0.02, 0.28, 0); parts.yaw.add(sv1);
+    // ch1 베이스 요 : 첫 서보 몸체(거꾸로) + 그 위 어깨 브래킷
+    parts.yaw = new THREE.Group(); parts.yaw.position.y = 0.09; P.add(parts.yaw);
+    const sv1body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.38, 0.2), MAT.dark);
+    sv1body.position.y = 0.19; parts.yaw.add(sv1body);
+    const sv1tabs = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.2), MAT.dark);
+    sv1tabs.position.y = 0.06; parts.yaw.add(sv1tabs);
+    const sv1stripe = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.005), MAT.hub);
+    sv1stripe.position.set(0, 0.3, 0.101); parts.yaw.add(sv1stripe);
+    [-0.25, 0.25].forEach(x => parts.yaw.add(bolt(x, 0.09, 0, 0.022, 0.03)));
     const shoulderBr = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.5), MAT.anod);
-    shoulderBr.position.y = 0.52; parts.yaw.add(shoulderBr);
-    const sv2 = servoBlock(1.0); sv2.position.set(0, 0.62, 0); sv2.rotation.y = Math.PI / 2; parts.yaw.add(sv2);
-    parts.yaw.add(bolt(0.14, 0.57, 0.2)); parts.yaw.add(bolt(-0.14, 0.57, -0.2));
+    shoulderBr.position.y = 0.43; parts.yaw.add(shoulderBr);
+    const sv2 = servoBlock(1.0); sv2.position.set(0, 0.53, 0); sv2.rotation.y = Math.PI / 2; parts.yaw.add(sv2);
+    parts.yaw.add(bolt(0.14, 0.48, 0.2)); parts.yaw.add(bolt(-0.14, 0.48, -0.2));
 
     // ch2 어깨 → 상완
-    parts.link1 = new THREE.Group(); parts.link1.position.y = 0.62; parts.yaw.add(parts.link1);
+    parts.link1 = new THREE.Group(); parts.link1.position.y = 0.53; parts.yaw.add(parts.link1);
     const hub1 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.46, 18), MAT.hub);
     hub1.rotation.x = Math.PI / 2; parts.link1.add(hub1);
     parts.link1.add(uLink(L1, 0.26, 0.42));
@@ -650,7 +653,7 @@ wait 1600
   // 카메라는 +z(팔 쪽)에서 -z 방향을 봄 → 화면 오른쪽 = +x, 화면 위 = -z(차단봉 쪽)
   const CAM = {
     all:  { t: [0, 1.1, 0.8], d: 8.0, th: -Math.PI / 2, ph: 1.05 },   // 차단봉 쪽(-z) 정면에서 바라봄
-    arm:  { t: [BASE.x, 1.2, BASE.z - 0.6], d: 4.8, th: 1.0, ph: 1.0 },
+    arm:  { t: [BASE.x, 0.9, BASE.z - 0.6], d: 4.4, th: 1.0, ph: 1.0 },
     belt: { t: [(BELT.x0 + BELT.x1) / 2, 1.0, 0], d: 6.4, th: 1.45, ph: 0.85 },
     flag: { t: [-FLAG.x, 1.05, -FLAG.z - 0.3], d: 2.8, th: 1.1, ph: 0.95 },   // 컨베이어 그룹이 180° 돌아 있으므로 부호 반전
     top:  { t: [0, 0.9, 0.6], d: 10.5, th: Math.PI / 2, ph: 0.12 }
