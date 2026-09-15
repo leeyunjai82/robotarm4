@@ -1,0 +1,7 @@
+# Cloudflare Workers 정적 배포 — Sense Lab · 파이보 랩과 같은 방식 (워커 코드 없음, 자산만 서빙)
+# 배포: npx wrangler deploy
+name = "factory-lab"
+compatibility_date = "2026-08-01"
+
+[assets]
+directory = "."
