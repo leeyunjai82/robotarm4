@@ -699,8 +699,8 @@ wait 1600
     // 차단봉: 0 = 벨트 가로질러 차단(+z 방향), +90 = 하류(+x)로 눕혀 개방.
     const rel = sim.joints[4].cur - 90;
     parts.flag.rotation.y = clamp(rel - 90, -200, 20) * Math.PI / 180;
-    beltTex.offset.x += sim.roller * 0.0016;
-    parts.rollers.forEach(r => r.rotation.y -= sim.roller * 0.004);
+    beltTex.offset.x -= sim.roller * 0.0016;   // 화면 기준: 앞으로(+) = 오른쪽으로 흐름
+    parts.rollers.forEach(r => r.rotation.y += sim.roller * 0.004);
     updateCamera();
     renderer.render(scene, camera);
   }
