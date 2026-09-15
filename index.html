@@ -503,7 +503,6 @@ wait 1600
     [BELT.x0, BELT.x1].forEach(x => {
       const r = new THREE.Mesh(new THREE.CylinderGeometry(rr, rr, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
       r.rotation.x = Math.PI / 2; r.position.set(x, T - rr, 0);
-      r.add(new THREE.Mesh(new THREE.BoxGeometry(rr * 2 + 0.01, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xFBF7EF })));
       conv.add(r); parts.rollers.push(r);
     });
     // 구동 서보 (ch5) — 바닥에 놓인다
