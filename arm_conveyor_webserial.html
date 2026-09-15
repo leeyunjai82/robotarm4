@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>미니 로봇 공장 조종실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* 초등용 미니 공장 테마 — 한 화면 고정, 스크롤 없음 */
+  :root {
+    --bg: #eaf1fb;
+    --panel: #ffffff;
+    --panel2: #f4f7fd;
+    --border: #d6e0f0;
+    --ink: #24314d;
+    --muted: #7d89a6;
+    --yellow: #ffc233;
+    --yellow-d: #e0a400;
+    --yellow-l: #fff3c9;
+    --blue: #3f7ef2;
+    --blue-l: #e3edff;
+    --teal: #1fbfae;
+    --orange: #ff8a3d;
+    --red: #ef476f;
+    --green: #2fbf71;
+    --green-l: #dcf7e8;
+    --sans: "Nunito", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+    --mono: "DM Mono", "D2Coding", "SF Mono", "Courier New", monospace;
+    --shadow: 0 2px 10px rgba(60, 90, 150, .10);
+    --r: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(circle at 12% 10%, #ffffff 0, transparent 40%),
+      radial-gradient(circle at 88% 90%, #dbe9ff 0, transparent 45%),
+      var(--bg);
+    color: var(--ink); font: 700 13px/1.4 var(--sans);
+    display: flex; flex-direction: column;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  input[type=file] { display: none; }
+  ::selection { background: var(--yellow); color: var(--ink); }
+  :focus-visible { outline: 3px solid rgba(63,126,242,.45); outline-offset: 1px; border-radius: 8px; }
+
+  /* 상단 바 */
+  header {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 7px 12px; background: var(--ink); color: #fff; flex: 0 0 auto;
+    border-bottom: 6px solid var(--yellow);
+    position: relative;
+  }
+  header::after {   /* 공장 안전 줄무늬 */
+    content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 6px;
+    background: repeating-linear-gradient(-45deg, var(--yellow) 0 14px, var(--ink) 14px 28px);
+  }
+  header .logo { font-size: 15px; font-weight: 900; letter-spacing: .01em; display: inline-flex; align-items: center; gap: 6px; }
+  header .sub { font-weight: 700; color: #b9c6e4; font-size: 12px; }
+  header .sp { flex: 1; }
+  .pilot {
+    display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 12px;
+    background: rgba(255,255,255,.08); padding: 3px 9px; border-radius: 999px;
+  }
+  .pilot i { width: 10px; height: 10px; border-radius: 50%; background: #56607a; display: block; }
+  .pilot i.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .pilot i.busy { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+  .hkey {
+    background: var(--yellow); color: var(--ink); border: 0; padding: 5px 11px; border-radius: 999px;
+    font-weight: 900; box-shadow: 0 3px 0 var(--yellow-d); transition: transform .05s;
+  }
+  .hkey:hover:not(:disabled) { filter: brightness(1.05); }
+  .hkey:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--yellow-d); }
+  .hkey.halt { background: var(--red); color: #fff; box-shadow: 0 3px 0 #b8264d; }
+  .hkey.ghost { background: #3a4866; color: #fff; box-shadow: 0 3px 0 #1c2537; }
+  .hkey.lang { background: #fff; color: var(--ink); box-shadow: 0 3px 0 #b9c6e4; padding: 5px 11px; }
+  .hsel { background: #3a4866; color: #fff; border: 0; padding: 4px 6px; border-radius: 8px; font-weight: 700; }
+  header label.st { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #d6dff2; font-weight: 700; }
+  input[type=checkbox] { accent-color: var(--blue); width: 15px; height: 15px; }
+
+  .warn { display: none; padding: 6px 14px; background: var(--yellow-l); color: #7a5200; flex: 0 0 auto; border-bottom: 1px solid #f0d78a; }
+
+  /* 본문: 한 화면 3열 */
+  main {
+    flex: 1; min-height: 0; display: grid; gap: 10px; padding: 14px 10px 10px;
+    grid-template-columns: 330px minmax(0, 1fr) 380px;
+  }
+  .col { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+
+  .box {
+    border: 2px solid var(--border); background: var(--panel); border-radius: var(--r);
+    display: flex; flex-direction: column; min-height: 0; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .box > h2 {
+    margin: 0; font-size: 13.5px; font-weight: 900;
+    padding: 6px 10px; background: var(--panel2); color: var(--ink); border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  }
+  .box > h2 .sp { flex: 1; }
+  .box > h2 .hopt { font-weight: 700; display: inline-flex; gap: 4px; align-items: center; font-size: 12px; color: var(--muted); }
+  .box.arm > h2 { background: var(--blue-l); }
+  .box.conv > h2 { background: var(--yellow-l); }
+  .box.seq > h2 { background: var(--green-l); }
+  .inner { padding: 9px; display: flex; flex-direction: column; gap: 7px; overflow: auto; min-height: 0; }
+  .inner::-webkit-scrollbar { width: 8px; }
+  .inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+
+  /* 채널 스트립 */
+  .strip { display: grid; grid-template-columns: 62px 1fr 84px; align-items: center; gap: 6px; }
+  .strip.arm { grid-template-columns: 62px 1fr 22px 76px 22px; gap: 4px; padding: 3px 4px; border: 2px solid transparent; border-radius: 10px; }
+  .strip.hl { border-color: var(--yellow); background: var(--yellow-l); }
+  .strip label { color: var(--ink); font-size: 12.5px; font-weight: 800; }
+  input[type=range] { width: 100%; height: 18px; accent-color: var(--blue); background: transparent; }
+  .rd { text-align: right; line-height: 1.1; }
+  .rd input {
+    width: 100%; background: var(--panel2); border: 2px solid var(--border); color: var(--ink); border-radius: 8px;
+    text-align: right; padding: 2px 6px; font-size: 13px; font-family: var(--mono); font-weight: 500;
+  }
+  .rd input::-webkit-outer-spin-button, .rd input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .rd .sub { display: block; font-size: 10px; color: var(--muted); white-space: nowrap; font-family: var(--mono); font-weight: 400; }
+  .nb {
+    width: 22px; height: 24px; padding: 0; background: #fff; border: 2px solid var(--border); border-radius: 8px;
+    color: var(--blue); font-size: 15px; font-weight: 900; line-height: 1; user-select: none; touch-action: none;
+  }
+  .nb:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+  body.calib .strip.arm:not([data-ch="4"]) .rd input { color: var(--green); border-color: #9be2bc; }
+  body.calib .strip.arm:not([data-ch="4"]) .nb { color: var(--green); border-color: #9be2bc; }
+  body.calib .strip.arm:not([data-ch="4"]) .sub { color: var(--green); }
+
+  .btns { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .btns .grow { flex: 1; }
+  .k {
+    background: #fff; border: 2px solid var(--border); color: var(--ink); border-radius: 10px;
+    padding: 4px 10px; font-size: 12.5px; font-weight: 800; box-shadow: 0 2px 0 var(--border); white-space: nowrap;
+  }
+  .k:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+  .k:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
+  .k.on { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 2px 0 #2b5fc4; }
+  .k.big { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 3px 0 #2b5fc4; padding: 6px 12px; }
+  .k.big:hover:not(:disabled) { color: #fff; filter: brightness(1.06); }
+  .k.sun { background: var(--yellow); border-color: var(--yellow); color: var(--ink); box-shadow: 0 3px 0 var(--yellow-d); }
+  .k.sun:hover:not(:disabled) { color: var(--ink); filter: brightness(1.04); }
+  .k.leaf { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 3px 0 #22955a; }
+  .k.leaf:hover:not(:disabled) { color: #fff; }
+  .k.grn.on { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 0 #22955a; }
+  .k.warn { border-color: #f6c1cf; color: var(--red); }
+  .ln { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; color: var(--muted); font-size: 12px; font-weight: 700; }
+  .ln input[type=number], .ln input[type=text], .ln select, .tlbar input[type=number], .tlbar select, input.num {
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 8px; color: var(--ink);
+    padding: 2px 6px; width: 68px; font-size: 12.5px; font-family: var(--mono); font-weight: 500;
+  }
+  .ln label { display: inline-flex; align-items: center; gap: 4px; }
+  .sep { border-top: 2px dashed var(--border); }
+  .note { margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4; font-weight: 700; }
+  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 4px; }
+  .chips .k { background: var(--yellow-l); border-color: #f4dc9a; }
+  details.teacher { border: 2px dashed var(--border); border-radius: 10px; padding: 4px 8px; }
+  details.teacher summary { cursor: pointer; font-size: 12px; color: var(--muted); font-weight: 800; list-style: none; }
+  details.teacher summary::before { content: '▸ '; }
+  details.teacher[open] summary::before { content: '▾ '; }
+  details.teacher > div { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
+
+  /* 뷰 */
+  .view {
+    flex: 1 1 auto; min-height: 150px; position: relative; cursor: grab; border-bottom: 2px solid var(--border);
+    background: linear-gradient(#dcebff, #f2f7ff);
+  }
+  .view.dragging { cursor: grabbing; }
+  .view canvas { display: block; width: 100%; height: 100%; }
+  .hud {
+    position: absolute; left: 10px; bottom: 8px; font-size: 10.5px; color: var(--ink); pointer-events: none;
+    background: rgba(255,255,255,.75); padding: 2px 8px; border-radius: 999px; font-weight: 700;
+  }
+  .tip {
+    position: absolute; display: none; pointer-events: none; z-index: 5;
+    background: var(--ink); color: #fff; padding: 3px 9px; font-size: 11.5px; border-radius: 999px; font-weight: 800;
+  }
+  .viewbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); flex: 0 0 auto; }
+  .viewbar input[type=range] { width: 84px; }
+  .viewbar label { display: inline-flex; align-items: center; gap: 4px; }
+  .vsep { width: 2px; height: 16px; background: var(--border); margin: 0 3px; border-radius: 2px; }
+
+  /* 타임라인 */
+  .tlbar { display: flex; align-items: center; gap: 5px; padding: 6px 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); flex: 0 0 auto; }
+  .tlbar input[type=number] { width: 52px; }
+  .tlbar select { width: auto; }
+  .tltime { min-width: 54px; text-align: center; color: var(--ink); font-family: var(--mono); font-weight: 500; }
+  .tlwrap { height: 64px; margin: 0 8px 8px; border: 2px solid var(--border); border-radius: 10px; position: relative; flex: 0 0 auto; overflow: hidden; }
+  .tlwrap canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+  /* 계기 */
+  table.m { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.m th { text-align: left; font-weight: 800; color: var(--muted); padding-bottom: 3px; }
+  table.m td { padding: 2px 0; border-top: 1px solid var(--panel2); }
+  table.m td.r { text-align: right; font-family: var(--mono); font-weight: 500; }
+  table.m tr td:first-child { color: var(--muted); font-family: var(--mono); font-weight: 500; }
+
+  textarea.seq {
+    width: 100%; height: 96px; resize: none; background: var(--panel2); color: var(--ink);
+    border: 2px solid var(--border); border-radius: 10px; padding: 5px 7px; font: 500 12px/1.45 var(--mono);
+  }
+  .tape {
+    flex: 1; min-height: 0; overflow: auto; background: #1e2740; margin: 0 9px;
+    border-radius: 10px; padding: 6px 8px; font: 400 11.5px/1.45 var(--mono);
+    white-space: pre-wrap; word-break: break-all; color: #c8d3ea;
+  }
+  .tape::-webkit-scrollbar { width: 8px; }
+  .tape::-webkit-scrollbar-thumb { background: #3a4866; border-radius: 8px; }
+  .tape .tx { color: #ffd166; } .tape .rx { color: #7ee2a0; }
+  .tape .err { color: #ff7b9c; } .tape .sys { color: #8fa3cc; }
+  .send { display: flex; gap: 5px; padding: 8px 9px; flex: 0 0 auto; }
+  .send input {
+    flex: 1; background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; color: var(--ink);
+    padding: 4px 8px; font: 500 12.5px var(--mono); min-width: 0;
+  }
+
+  @media (max-width: 1520px) { header .sub { display: none; } }
+  @media (max-width: 1180px) {
+    html, body { overflow: auto; }
+    main { grid-template-columns: 1fr; }
+    .view { height: 300px; flex: 0 0 auto; }
+    .inner { overflow: visible; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🏭 <span data-i18n="app.title">미니 로봇 공장 조종실</span></span>
+  <span class="sub" data-i18n="app.sub">로봇팔 4채널 + 컨베이어 2채널</span>
+  <span class="pilot"><i id="lampLink"></i><span id="lampLinkTxt">로봇 연결 안 됨</span></span>
+  <span class="pilot"><i id="lampBusy"></i><span id="lampBusyTxt">쉬는 중</span></span>
+  <span class="sp"></span>
+  <label class="st"><span data-i18n="hdr.baud">통신속도</span>
+    <select class="hsel" id="baudSel">
+      <option value="9600">9600</option>
+      <option value="57600">57600</option>
+      <option value="115200" selected>115200</option>
+      <option value="1000000">1000000</option>
+    </select>
+  </label>
+  <label class="st"><input type="checkbox" id="autoRe" checked><span data-i18n="hdr.autore">자동 다시연결</span></label>
+  <button class="hkey" id="btnConnect" data-i18n="hdr.connect">🔌 로봇 연결</button>
+  <button class="hkey ghost" id="btnDisconnect" disabled data-i18n="hdr.disconnect">연결 끊기</button>
+  <button class="hkey halt" id="btnStop" data-i18n="hdr.stop">🛑 멈춰! (ESC)</button>
+  <button class="hkey lang" id="btnLang" title="한국어 / English">🌐 English</button>
+</header>
+<div class="warn" id="unsupported" data-i18n="warn.serial">이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.</div>
+
+<main>
+  <!-- 좌: 로봇팔 -->
+  <div class="col">
+    <section class="box arm" style="flex:1 1 auto">
+      <h2><span data-i18n="arm.title">🦾 로봇팔 (ch1-4)</span><span class="sp"></span><label class="hopt"><input type="checkbox" id="liveArm" checked><span data-i18n="arm.live">실시간</span></label></h2>
+      <div class="inner">
+        <div class="strip arm" data-ch="1"><label for="j1" data-i18n="j1">회전</label><input type="range" id="j1" min="0" max="180" value="90">
+          <button class="nb" data-ch="1" data-dir="-1">−</button>
+          <span class="rd"><input id="v1" type="number" min="0" max="180" value="90"><span class="sub" id="u1"></span></span>
+          <button class="nb" data-ch="1" data-dir="1">+</button></div>
+        <div class="strip arm" data-ch="2"><label for="j2" data-i18n="j2">어깨</label><input type="range" id="j2" min="0" max="180" value="90">
+          <button class="nb" data-ch="2" data-dir="-1">−</button>
+          <span class="rd"><input id="v2" type="number" min="0" max="180" value="90"><span class="sub" id="u2"></span></span>
+          <button class="nb" data-ch="2" data-dir="1">+</button></div>
+        <div class="strip arm" data-ch="3"><label for="j3" data-i18n="j3">팔꿈치</label><input type="range" id="j3" min="0" max="180" value="90">
+          <button class="nb" data-ch="3" data-dir="-1">−</button>
+          <span class="rd"><input id="v3" type="number" min="0" max="180" value="90"><span class="sub" id="u3"></span></span>
+          <button class="nb" data-ch="3" data-dir="1">+</button></div>
+        <div class="strip arm" data-ch="4"><label for="j4" data-i18n="j4">집게</label><input type="range" id="j4" min="0" max="180" value="90">
+          <button class="nb" data-ch="4" data-dir="-1">−</button>
+          <span class="rd"><input id="v4" type="number" min="0" max="180" value="90"><span class="sub" id="u4"></span></span>
+          <button class="nb" data-ch="4" data-dir="1">+</button></div>
+        <p class="note" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)</p>
+        <div class="btns">
+          <button class="k big grow" id="btnArmMove" data-i18n="arm.move">🚀 이 자세로 가기</button>
+          <button class="k sun" id="btnArmHome" data-i18n="arm.home">🏠 집으로</button>
+          <button class="k" id="btnReset" data-i18n="arm.reset" data-i18n-title="arm.resetTitle">처음 자세</button>
+        </div>
+        <div class="btns">
+          <button class="k" id="btnGripOpen" data-i18n="arm.gripOpen">✋ 집게 열기</button>
+          <button class="k" id="btnGripClose" data-i18n="arm.gripClose">✊ 집게 닫기</button>
+          <button class="k" id="btnOff" data-i18n="arm.off">💤 힘 빼기</button>
+          <button class="k" id="btnOn" data-i18n="arm.on">💪 힘 주기</button>
+        </div>
+        <div class="sep"></div>
+        <div class="ln">
+          <span data-i18n="pose.title">⭐ 자세 저장</span>
+          <input type="text" id="presetName" data-i18n-placeholder="pose.ph" placeholder="자세 이름" style="width:88px">
+          <button class="k" id="btnPresetSave" data-i18n="pose.save">지금 자세 저장</button>
+        </div>
+        <div class="chips" id="presets"></div>
+        <p class="note" data-i18n="pose.note">Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요</p>
+        <div class="btns">
+          <button class="k" id="btnPoseFileSave" data-i18n="pose.fileSave">pose.json 저장</button>
+          <button class="k" id="btnPoseFileLoad" data-i18n="pose.fileLoad">불러오기</button>
+          <input type="file" id="poseFileIn" accept=".json">
+        </div>
+        <details class="teacher">
+          <summary data-i18n="teacher.title">⚙️ 선생님 도구</summary>
+          <div>
+            <div class="btns">
+              <button class="k grn" id="btnCalib" data-i18n="cal.btn">영점 맞추기</button>
+              <button class="k warn" id="btnCalibReset" hidden data-i18n="cal.reset">보정값 지우기</button>
+              <span class="note" id="calibTxt" style="margin-left:auto"></span>
+            </div>
+            <p class="note" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
+            <div class="ln">
+              <span data-i18n="spd.label">속도</span>
+              <select id="spdJoint"><option value="1">ch1</option><option value="2">ch2</option><option value="3">ch3</option><option value="4">ch4</option><option value="5">ch6</option></select>
+              <input type="number" id="spdVal" min="1" max="720" value="60"><span data-i18n="spd.unit">도/초</span>
+              <button class="k" id="btnSpeed" data-i18n="spd.send">적용</button>
+              <label style="margin-left:auto"><input type="checkbox" id="easing" checked><span data-i18n="spd.ease">부드럽게</span></label>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <!-- 중: 3D + 타임라인 + 계기판 -->
+  <div class="col">
+    <section class="box" style="flex:1 1 auto">
+      <h2><span data-i18n="view.title">👀 3D 공장 보기</span><span class="sp"></span><span class="hopt" data-i18n="view.echo">명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)</span></h2>
+      <div class="view" id="sceneBox">
+        <canvas id="sim"></canvas>
+        <div class="hud"><span id="fpsTxt">FPS --</span> · <span data-i18n="view.hud">왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기</span></div>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="viewbar">
+        <span data-i18n="view.label">보기</span>
+        <button class="k" data-cam="all" data-i18n="view.all">전체</button>
+        <button class="k" data-cam="arm" data-i18n="view.arm">로봇팔</button>
+        <button class="k" data-cam="belt" data-i18n="view.belt">벨트</button>
+        <button class="k" data-cam="flag" data-i18n="view.flag">차단봉</button>
+        <button class="k" data-cam="top" data-i18n="view.top">위에서</button>
+        <span class="vsep"></span>
+        <button class="k on" id="btnGrid" data-i18n="view.grid">바닥선</button>
+        <button class="k" id="btnWire" data-i18n="view.wire">뼈대</button>
+        <button class="k" id="btnAxes" data-i18n="view.axes">회전축</button>
+        <button class="k" id="btnShot" data-i18n="view.shot">📷 사진</button>
+        <label style="margin-left:auto"><span data-i18n="view.zoom">확대</span>
+        <input type="range" id="camZoom" min="0.15" max="10" step="0.05" value="1.6">
+        <span id="camZoomTxt">1.6x</span></label>
+      </div>
+    </section>
+
+    <section class="box" style="flex:0 0 auto">
+      <h2><span data-i18n="tl.title">🎬 동작 타임라인 (ch1-4)</span><span class="sp"></span><span class="hopt" id="tlKfCount">장면 0개</span></h2>
+      <div class="tlbar">
+        <button class="k" id="tlToStart" data-i18n-title="tl.toStart">|◀</button>
+        <button class="k" id="tlPlay" data-i18n-title="tl.play">▶</button>
+        <button class="k" id="tlStop" data-i18n-title="tl.stop">■</button>
+        <span class="tltime" id="tlTime">0.00s</span>
+        <span class="vsep"></span>
+        <button class="k sun" id="tlAdd" data-i18n="tl.add">+ 장면 추가</button>
+        <button class="k" id="tlDel" data-i18n="tl.del">✕ 지우기</button>
+        <span class="vsep"></span>
+        <span data-i18n="tl.len">길이</span> <input type="number" id="tlDur" value="30" min="1" max="120" step="1">s
+        <span data-i18n="tl.speed">빠르기</span> <select id="tlSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+        <button class="k" id="tlLoop" data-i18n="tl.loop">반복</button>
+        <span class="vsep"></span>
+        <button class="k" id="tlSave" data-i18n="tl.save">motion.txt 저장</button>
+        <button class="k" id="tlLoad" data-i18n="tl.load">불러오기</button>
+        <input type="file" id="motionFileIn" accept=".txt,.json">
+      </div>
+      <div class="tlwrap" id="tlWrap"><canvas id="tlCanvas"></canvas></div>
+    </section>
+
+    <section class="box" style="flex:0 0 auto">
+      <h2 data-i18n="meter.title">📊 모터 계기판</h2>
+      <div class="inner" style="padding-top:6px">
+        <table class="m">
+          <tr><th style="width:44px" data-i18n="meter.ch">채널</th><th data-i18n="meter.axis">부품</th><th class="r" data-i18n="meter.cmd">목표</th><th class="r" data-i18n="meter.cur">지금</th><th class="r" data-i18n="meter.pulse">펄스</th></tr>
+          <tbody id="chTable"></tbody>
+        </table>
+        <p class="note" data-i18n="meter.note">펄스 = 544~2400us 계산값(보정 포함) · #pos! 응답이 오면 로봇 값으로 맞춰요</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- 우: 컨베이어 + 순서 + 대화 -->
+  <div class="col">
+    <section class="box conv" style="flex:0 0 auto">
+      <h2 data-i18n="conv.title">🏭 컨베이어 (ch5-6)</h2>
+      <div class="inner">
+        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="-90" max="90" value="0">
+          <span class="rd"><input id="rollerVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u5"></span></span></div>
+        <div class="btns">
+          <button class="k big grow" id="btnRollerRun" data-i18n="conv.run">▶ 벨트 돌리기</button>
+          <button class="k" id="btnRollerStop" data-i18n="conv.stop">멈춤</button>
+          <button class="k" id="btnRollerRev" data-i18n="conv.rev">거꾸로</button>
+          <input type="number" class="num" id="rollerMs" min="50" max="60000" step="50" value="1000" style="width:64px">
+          <button class="k" id="btnRollerTimed" data-i18n="conv.timed" data-i18n-title="conv.timedTitle">⏱ 잠깐만</button>
+        </div>
+        <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
+          <span class="rd"><input id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
+        <div class="btns">
+          <button class="k" id="btnFlagL">-90</button>
+          <button class="k" id="btnFlagC" data-i18n="flag.c">🚧 닫기 (0)</button>
+          <button class="k leaf" id="btnFlagR" data-i18n="flag.r">🟢 열기 (+90)</button>
+          <button class="k" id="btnFlagMove" data-i18n="flag.move">가기</button>
+          <input type="number" class="num" id="flagMs" min="100" max="10000" step="50" value="1200" style="width:64px">
+          <button class="k" id="btnFlagFlip" data-i18n="flag.flip" data-i18n-title="flag.flipTitle">⏱ 열었다 닫기</button>
+        </div>
+        <div class="ln">
+          <span data-i18n="raw.label">#raw 펄스 직접</span>
+          <select id="rawCh"><option>0</option><option>7</option><option>8</option><option>9</option></select>
+          <input type="number" id="rawUs" min="500" max="2500" step="10" value="1500">us
+          <button class="k" id="btnRaw" data-i18n="raw.out">보내기</button>
+          <span style="margin-left:auto" data-i18n="raw.note">벨트 0 = 펄스 끔</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="box seq" style="flex:0 0 auto">
+      <h2><span data-i18n="seq.title">📝 순서대로 시키기</span><span class="sp"></span><button class="k" id="btnSeqExample" data-i18n="seq.example">예제 넣기</button></h2>
+      <div class="inner">
+        <textarea class="seq" id="seq" spellcheck="false" placeholder="pose home
+waitdone
+#m1:45,1500!
+wait 1600
+#m2:90,1200!"></textarea>
+        <div class="btns">
+          <button class="k leaf" id="btnSeqRun" data-i18n="seq.run">▶ 실행</button>
+          <button class="k" id="btnSeqStop" disabled data-i18n="seq.stop">■ 멈춤</button>
+          <label class="ln" style="margin:0"><input type="checkbox" id="seqLoop"><span data-i18n="seq.loop">반복</span></label>
+          <span class="note" style="margin-left:auto">wait N / waitdone / pose</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="box" style="flex:1 1 auto">
+      <h2><span data-i18n="term.title">💬 로봇과 대화하기</span><span class="sp"></span><button class="k" id="btnPos" data-i18n="term.pos">#pos 어디니?</button><button class="k" id="btnClear" data-i18n="term.clear">지우기</button></h2>
+      <div class="tape" id="term"></div>
+      <div class="send">
+        <input id="cmd" placeholder="#pos!  #map!  #m:90,45,120,90!" autocomplete="off">
+        <button class="k big" id="btnSend" data-i18n="term.send">보내기</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+  /* ===================== 설정 ===================== */
+  const DEFAULT_JOINT_NAMES = ['joint1_yaw', 'joint2_shoulder', 'joint3_elbow', 'gripper_joint']; // pose.json 호환
+  const SEND_INTERVAL = 200;         // ms, 실시간/타임라인 #m 전송 최소 간격 (값 바뀔 때만)
+  const CAL_KEY = 'armConveyorCal';
+  const PKEY = 'armConveyorPoses';
+  const LANG_KEY = 'armConveyorLang';
+
+  const $ = id => document.getElementById(id);
+  const term = $('term');
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const angToUs = a => Math.round(544 + (a / 180) * (2400 - 544));   // 펌웨어 ServoJoint 와 동일
+
+  let port = null, writer = null, reader = null, rxLine = '';
+  let seqRunning = false, seqAbort = false, busy = false;
+
+  /* ===================== 한/영 ===================== */
+  const I18N = {
+    ko: {
+      'app.title': '미니 로봇 공장 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
+      'hdr.noboard': '로봇 연결 안 됨', 'hdr.idle': '쉬는 중', 'hdr.working': '일하는 중', 'hdr.released': '힘 빼기 상태', 'hdr.playing': '동작 재생 중',
+      'hdr.baud': '통신속도', 'hdr.autore': '자동 다시연결', 'hdr.connect': '🔌 로봇 연결', 'hdr.disconnect': '연결 끊기', 'hdr.stop': '🛑 멈춰! (ESC)',
+      'hdr.lang': '🌐 English',
+      'warn.serial': '이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.',
+      'arm.title': '🦾 로봇팔 (ch1-4)', 'arm.live': '실시간',
+      'j1': '회전', 'j2': '어깨', 'j3': '팔꿈치', 'j4': '집게',
+      'arm.note': '−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)',
+      'arm.move': '🚀 이 자세로 가기', 'arm.home': '🏠 집으로', 'arm.reset': '처음 자세', 'arm.resetTitle': 'ch1-3=90, 집게=0',
+      'arm.gripOpen': '✋ 집게 열기', 'arm.gripClose': '✊ 집게 닫기', 'arm.off': '💤 힘 빼기', 'arm.on': '💪 힘 주기',
+      'pose.title': '⭐ 자세 저장', 'pose.ph': '자세 이름', 'pose.save': '지금 자세 저장',
+      'pose.note': 'Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요',
+      'pose.fileSave': 'pose.json 저장', 'pose.fileLoad': '불러오기', 'pose.del': '(Shift+클릭: 지우기)',
+      'teacher.title': '⚙️ 선생님 도구', 'cal.btn': '영점 맞추기', 'cal.reset': '보정값 지우기', 'cal.txt': '보정',
+      'cal.help': '영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.',
+      'spd.label': '속도', 'spd.unit': '도/초', 'spd.send': '적용', 'spd.ease': '부드럽게',
+      'view.title': '👀 3D 공장 보기', 'view.echo': '명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)',
+      'view.hud': '왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기',
+      'view.label': '보기', 'view.all': '전체', 'view.arm': '로봇팔', 'view.belt': '벨트', 'view.flag': '차단봉', 'view.top': '위에서',
+      'view.grid': '바닥선', 'view.wire': '뼈대', 'view.axes': '회전축', 'view.shot': '📷 사진', 'view.zoom': '확대',
+      'tl.title': '🎬 동작 타임라인 (ch1-4)', 'tl.kf': '장면 {n}개', 'tl.toStart': '처음으로', 'tl.play': '재생 / 잠깐 멈춤', 'tl.stop': '정지',
+      'tl.add': '+ 장면 추가', 'tl.del': '✕ 지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
+      'meter.title': '📊 모터 계기판', 'meter.ch': '채널', 'meter.axis': '부품', 'meter.cmd': '목표', 'meter.cur': '지금', 'meter.pulse': '펄스',
+      'meter.note': '펄스 = 544~2400us 계산값(보정 포함) · #pos! 응답이 오면 로봇 값으로 맞춰요',
+      'row.base': '회전(베이스)', 'row.shld': '어깨', 'row.elbw': '팔꿈치', 'row.grip': '집게', 'row.flag': '차단봉', 'row.roll': '벨트',
+      'row.run': '돌아감', 'row.stop': '멈춤', 'row.cut': '꺼짐',
+      'conv.title': '🏭 컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.run': '▶ 벨트 돌리기', 'conv.stop': '멈춤', 'conv.rev': '거꾸로',
+      'conv.timed': '⏱ 잠깐만', 'conv.timedTitle': '옆에 적은 ms 동안만 돌아요',
+      'conv.flag': '차단봉', 'flag.c': '🚧 닫기 (0)', 'flag.r': '🟢 열기 (+90)', 'flag.move': '가기', 'flag.flip': '⏱ 열었다 닫기', 'flag.flipTitle': '옆에 적은 ms 뒤에 다시 닫혀요',
+      'raw.label': '#raw 펄스 직접', 'raw.out': '보내기', 'raw.note': '벨트 0 = 펄스 끔',
+      'seq.title': '📝 순서대로 시키기', 'seq.example': '예제 넣기', 'seq.run': '▶ 실행', 'seq.stop': '■ 멈춤', 'seq.loop': '반복',
+      'term.title': '💬 로봇과 대화하기', 'term.pos': '#pos 어디니?', 'term.clear': '지우기', 'term.send': '보내기',
+      'lbl.arm': '로봇팔 ch1-4', 'lbl.belt': '벨트 ch5', 'lbl.flag': '차단봉 ch6',
+      'port.generic': '직렬 포트', 'log.viewOnly': '(3D만)', 'log.preCal': '(보정 전 {cmd})',
+      'log.ready': '준비 완료! 로봇이 없어도 3D 로 미리 볼 수 있어요.',
+      'log.connected': '로봇 연결됨 · {info} · {baud}baud', 'log.connFail': '연결 실패: {msg}',
+      'log.autoRe': '[자동 다시연결] {info}', 'log.autoReFail': '자동 다시연결 실패: {msg}',
+      'log.disconnected': '연결이 끊어졌어요', 'log.detached': '로봇이 빠졌어요', 'log.rxErr': '받기 오류: {msg}', 'log.txFail': '보내기 실패: {msg}',
+      'log.seqEmpty': '순서가 비어 있어요', 'log.seqStart': '순서 시작!', 'log.seqStopped': '순서 멈춤', 'log.seqDone': '순서 끝! 잘했어요 👏',
+      'log.poseMissing': '그런 자세가 없어요: {name}', 'log.parseFail': '이해 못 했어요: {line}',
+      'log.needKf': '먼저 장면을 추가하세요', 'log.motionSaved': 'motion.txt 저장 (장면 {n}개)', 'log.motionLoaded': '{name} 불러옴 (장면 {n}개, {dur}s)', 'log.motionErr': '동작 파일 해석 실패: {msg}',
+      'log.poseName': '자세 이름을 적어 주세요', 'log.poseLoaded': '{name} 불러옴: {v}', 'log.poseErr': 'pose.json 해석 실패: {msg}',
+      'log.calLive': '영점 맞출 때 진짜 로봇에 반영하려면 "실시간" 을 켜세요', 'log.calReset': '보정값 지움',
+      'log.3dfail': '3D 그림을 불러오지 못했어요. 인터넷이 연결된 상태에서 다시 열어 주세요. 로봇 조종은 그대로 돼요.',
+      'log.lang': '언어: 한국어'
+    },
+    en: {
+      'app.title': 'Mini Robot Factory Control Room', 'app.sub': 'Arm 4ch + Conveyor 2ch',
+      'hdr.noboard': 'No robot', 'hdr.idle': 'Resting', 'hdr.working': 'Working', 'hdr.released': 'Relaxed (torque off)', 'hdr.playing': 'Playing motion',
+      'hdr.baud': 'Baud', 'hdr.autore': 'Auto reconnect', 'hdr.connect': '🔌 Connect', 'hdr.disconnect': 'Disconnect', 'hdr.stop': '🛑 STOP (ESC)',
+      'hdr.lang': '🌐 한국어',
+      'warn.serial': "This browser can't talk to the robot (no Web Serial). You can still use the 3D view. Use Chrome / Edge to drive the real robot.",
+      'arm.title': '🦾 Robot Arm (ch1-4)', 'arm.live': 'LIVE',
+      'j1': 'Turn', 'j2': 'Shoulder', 'j3': 'Elbow', 'j4': 'Gripper',
+      'arm.note': '−/+ moves 1°, hold to keep going · Gripper 0=wide open(45mm) 180=closed(15mm)',
+      'arm.move': '🚀 Go to this pose', 'arm.home': '🏠 Home', 'arm.reset': 'Start pose', 'arm.resetTitle': 'ch1-3=90, gripper=0',
+      'arm.gripOpen': '✋ Open gripper', 'arm.gripClose': '✊ Close gripper', 'arm.off': '💤 Relax', 'arm.on': '💪 Hold',
+      'pose.title': '⭐ Saved poses', 'pose.ph': 'pose name', 'pose.save': 'Save this pose',
+      'pose.note': 'Shift+click = delete · call it in the step program with "pose name"',
+      'pose.fileSave': 'Save pose.json', 'pose.fileLoad': 'Load', 'pose.del': '(Shift+click: delete)',
+      'teacher.title': '⚙️ Teacher tools', 'cal.btn': 'Zero calibration', 'cal.reset': 'Clear offsets', 'cal.txt': 'Offset',
+      'cal.help': 'Zero mode: −/+ changes the ch1-3 offset by 1° (applied only to what is sent to the real robot, saved in the browser). Adjust until the robot stands straight.',
+      'spd.label': 'Speed', 'spd.unit': 'deg/s', 'spd.send': 'Apply', 'spd.ease': 'Smooth',
+      'view.title': '👀 3D Factory View', 'view.echo': 'Shows what you commanded (not the real position)',
+      'view.hud': 'Left drag: orbit · Right/Shift: pan · Wheel: zoom · Click: pick a part',
+      'view.label': 'View', 'view.all': 'All', 'view.arm': 'Arm', 'view.belt': 'Belt', 'view.flag': 'Gate', 'view.top': 'Top',
+      'view.grid': 'Grid', 'view.wire': 'Wire', 'view.axes': 'Axes', 'view.shot': '📷 Snapshot', 'view.zoom': 'Zoom',
+      'tl.title': '🎬 Motion Timeline (ch1-4)', 'tl.kf': '{n} keyframes', 'tl.toStart': 'To start', 'tl.play': 'Play / pause', 'tl.stop': 'Stop',
+      'tl.add': '+ Add keyframe', 'tl.del': '✕ Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
+      'meter.title': '📊 Motor Dashboard', 'meter.ch': 'CH', 'meter.axis': 'Part', 'meter.cmd': 'Target', 'meter.cur': 'Now', 'meter.pulse': 'Pulse',
+      'meter.note': 'Pulse = computed 544~2400us (with offset) · synced to the robot when #pos! replies',
+      'row.base': 'Turn (base)', 'row.shld': 'Shoulder', 'row.elbw': 'Elbow', 'row.grip': 'Gripper', 'row.flag': 'Gate', 'row.roll': 'Belt',
+      'row.run': 'Running', 'row.stop': 'Stopped', 'row.cut': 'Off',
+      'conv.title': '🏭 Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.run': '▶ Run belt', 'conv.stop': 'Stop', 'conv.rev': 'Reverse',
+      'conv.timed': '⏱ For a while', 'conv.timedTitle': 'Runs only for the ms typed next to it',
+      'conv.flag': 'Gate', 'flag.c': '🚧 Close (0)', 'flag.r': '🟢 Open (+90)', 'flag.move': 'Go', 'flag.flip': '⏱ Open & close', 'flag.flipTitle': 'Closes again after the ms typed next to it',
+      'raw.label': '#raw pulse', 'raw.out': 'Send', 'raw.note': 'Belt 0 = pulse off',
+      'seq.title': '📝 Step Program', 'seq.example': 'Example', 'seq.run': '▶ Run', 'seq.stop': '■ Stop', 'seq.loop': 'Loop',
+      'term.title': '💬 Talk to Robot', 'term.pos': '#pos where?', 'term.clear': 'Clear', 'term.send': 'Send',
+      'lbl.arm': 'ARM ch1-4', 'lbl.belt': 'BELT ch5', 'lbl.flag': 'GATE ch6',
+      'port.generic': 'Serial port', 'log.viewOnly': '(3D only)', 'log.preCal': '(before offset {cmd})',
+      'log.ready': 'Ready! You can preview in 3D even without a robot.',
+      'log.connected': 'Robot connected · {info} · {baud}baud', 'log.connFail': 'Connect failed: {msg}',
+      'log.autoRe': '[auto reconnect] {info}', 'log.autoReFail': 'Auto reconnect failed: {msg}',
+      'log.disconnected': 'Disconnected', 'log.detached': 'Robot unplugged', 'log.rxErr': 'Receive error: {msg}', 'log.txFail': 'Send failed: {msg}',
+      'log.seqEmpty': 'The program is empty', 'log.seqStart': 'Program started!', 'log.seqStopped': 'Program stopped', 'log.seqDone': 'Program finished! Nice job 👏',
+      'log.poseMissing': 'No such pose: {name}', 'log.parseFail': "I don't understand: {line}",
+      'log.needKf': 'Add a keyframe first', 'log.motionSaved': 'motion.txt saved ({n} keyframes)', 'log.motionLoaded': '{name} loaded ({n} keyframes, {dur}s)', 'log.motionErr': 'Motion file error: {msg}',
+      'log.poseName': 'Type a pose name first', 'log.poseLoaded': '{name} loaded: {v}', 'log.poseErr': 'pose.json error: {msg}',
+      'log.calLive': 'Turn on "LIVE" to apply zeroing to the real robot', 'log.calReset': 'Offsets cleared',
+      'log.3dfail': "Couldn't load the 3D view. Open again with internet access. Robot control still works.",
+      'log.lang': 'Language: English'
+    }
+  };
+  let lang = 'ko';
+  try { const s = localStorage.getItem(LANG_KEY); if (s === 'en' || s === 'ko') lang = s; } catch {}
+  function t(key, vars) {
+    let s = (I18N[lang] && I18N[lang][key]) ?? I18N.ko[key] ?? key;
+    if (vars) for (const k of Object.keys(vars)) s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), vars[k]);
+    return s;
+  }
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = t('app.title');
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+    $('btnLang').textContent = t('hdr.lang');
+    setConnected(!!port, port ? describePort(port) : '');
+    kfCount(); renderPoses(); relabel3d();
+  }
+  $('btnLang').onclick = () => {
+    lang = lang === 'ko' ? 'en' : 'ko';
+    try { localStorage.setItem(LANG_KEY, lang); } catch {}
+    applyLang(); log(t('log.lang'), 'sys');
+  };
+
+  if (!('serial' in navigator)) { $('unsupported').style.display = 'block'; $('btnConnect').disabled = true; }
+
+  function log(text, cls = 'rx') {
+    const at = term.scrollTop + term.clientHeight >= term.scrollHeight - 4;
+    const el = document.createElement('div'); el.className = cls;
+    const tm = new Date(), p = n => String(n).padStart(2, '0');
+    el.textContent = `${p(tm.getHours())}:${p(tm.getMinutes())}:${p(tm.getSeconds())} ${cls === 'tx' ? '→' : cls === 'rx' ? '←' : '·'} ${text}`;
+    term.appendChild(el);
+    while (term.childElementCount > 500) term.removeChild(term.firstChild);
+    if (at) term.scrollTop = term.scrollHeight;
+  }
+  function download(name, blob) {
+    const a = document.createElement('a');
+    a.download = name; a.href = URL.createObjectURL(blob);
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+
+  /* ===== 영점 보정 (ch1-3, 전송값에만 반영) ===== */
+  let calibMode = false;
+  let cal = [0, 0, 0];
+  try { const s = JSON.parse(localStorage.getItem(CAL_KEY) || 'null'); if (Array.isArray(s)) cal = [0, 1, 2].map(i => +s[i] || 0); } catch {}
+  const saveCal = () => { try { localStorage.setItem(CAL_KEY, JSON.stringify(cal)); } catch {} };
+  const calOf = ch => (ch >= 1 && ch <= 3) ? cal[ch - 1] : 0;       // ch = 1..4
+  const hasCal = () => cal.some(v => v);
+  const withCal = (ch, v) => clamp(Math.round(v + calOf(ch)), 0, 180);
+  function calOut(cmd) {        // 로봇으로 나가는 명령에만 오프셋 적용
+    let x;
+    if ((x = cmd.match(/^#m:(-?\d+),(-?\d+),(-?\d+),(-?\d+)(.*)$/)))
+      return `#m:${[1, 2, 3, 4].map(ch => withCal(ch, +x[ch])).join(',')}${x[5]}`;
+    if ((x = cmd.match(/^#j:(\d+),(-?\d+)(.*)$/)))
+      return `#j:${x[1]},${withCal(+x[1], +x[2])}${x[3]}`;
+    return cmd;
+  }
+
+  /* ===== 지령 모델 : 펌웨어 ServoJoint 와 같은 smoothstep/deg per sec ===== */
+  const sim = {
+    joints: [  // 0~3 = ch1~ch4, 4 = ch6 차단봉
+      { cur: 90, from: 90, to: 90, t0: 0, dur: 0, dps: 60 },
+      { cur: 90, from: 90, to: 90, t0: 0, dur: 0, dps: 60 },
+      { cur: 90, from: 90, to: 90, t0: 0, dur: 0, dps: 60 },
+      { cur: 90, from: 90, to: 90, t0: 0, dur: 0, dps: 120 },
+      { cur: 90, from: 90, to: 90, t0: 0, dur: 0, dps: 67 }
+    ],
+    easing: true, roller: 0, rollerUntil: 0, flagReturnAt: 0, released: false
+  };
+  function simMove(i, target) {
+    const j = sim.joints[i]; if (!j) return;
+    target = clamp(target, 0, 180);
+    const d = Math.abs(target - j.cur);
+    j.from = j.cur; j.to = target; j.t0 = performance.now();
+    j.dur = d < 0.5 ? 0 : (d / j.dps) * 1000;
+    if (!j.dur) j.cur = target;
+    sim.released = false;
+  }
+  function simSet(i, v) {       // 타임라인: 보간값을 즉시 반영
+    const j = sim.joints[i]; if (!j) return;
+    j.cur = j.from = j.to = clamp(v, 0, 180); j.dur = 0;
+    sim.released = false;
+  }
+  function simStop() { sim.joints.forEach(j => { j.dur = 0; j.to = j.cur; }); }
+  const simBusy = () => sim.joints.some(j => j.dur > 0);
+  function simTick(now) {
+    for (const j of sim.joints) {
+      if (!j.dur) continue;
+      const tt = (now - j.t0) / j.dur;
+      if (tt >= 1) { j.cur = j.to; j.dur = 0; continue; }
+      const r = sim.easing ? tt * tt * (3 - 2 * tt) : tt;
+      j.cur = j.from + (j.to - j.from) * r;
+    }
+    if (sim.rollerUntil && now >= sim.rollerUntil) { sim.rollerUntil = 0; sim.roller = 0; $('roller').value = $('rollerVal').value = 0; }
+    if (sim.flagReturnAt && now >= sim.flagReturnAt) { sim.flagReturnAt = 0; simMove(4, 90); $('flag').value = $('flagVal').value = 0; }
+  }
+
+  /* ===== 3D : 로봇팔 1대 + 컨베이어 1대 (밝은 장난감 공장 톤) ===== */
+  const cv = $('sim');
+  const HAS3D = typeof THREE !== 'undefined';
+  /* 배치 (TOP 뷰 기준): 벨트는 좌→우(+x), 로봇팔은 벨트 중앙 앞쪽(+z, 화면 아래),
+     차단봉은 벨트 건너편(-z, 화면 위) 하류 쪽 */
+  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.9 };
+  const BASE = { x: 0, z: 2.0 };
+  const L1 = 1.35, L2 = 1.05;
+  const FLAG = { x: 1.5, z: -(BELT.w / 2 + 0.18), len: 1.18 };
+  const CH_KEY = ['j1', 'j2', 'j3', 'j4'];
+  let renderer, scene, camera, beltTex, grid, worldAxes, parts = {};
+  let wireMode = false, axisMode = false;
+  const procAxes = [];
+  const labels = [];   // { sprite, key, color }
+
+  function makeLabelTexture(text, color) {
+    const c = document.createElement('canvas'); c.width = 320; c.height = 80;
+    const g = c.getContext('2d');
+    g.font = '800 30px Nunito, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+    const w = Math.min(310, g.measureText(text).width + 40);
+    g.fillStyle = 'rgba(255,255,255,.92)';
+    g.beginPath(); g.roundRect((320 - w) / 2, 12, w, 56, 28); g.fill();
+    g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 160, 41);
+    const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter; return tex;
+  }
+  function label(key, color = '#24314d') {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeLabelTexture(t(key), color), transparent: true, depthTest: false }));
+    sp.scale.set(1.5, 0.375, 1);
+    labels.push({ sprite: sp, key, color });
+    return sp;
+  }
+  function relabel3d() {
+    if (!HAS3D) return;
+    for (const l of labels) {
+      const old = l.sprite.material.map;
+      l.sprite.material.map = makeLabelTexture(t(l.key), l.color);
+      l.sprite.material.needsUpdate = true;
+      if (old) old.dispose();
+    }
+  }
+
+  function buildScene() {
+    renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
+    renderer.setClearColor(0xdfeeff, 1);
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xdfeeff, 30, 110);
+    camera = new THREE.PerspectiveCamera(48, 1, 0.05, 400);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xb8c6dc, 0.95));
+    const dl = new THREE.DirectionalLight(0xffffff, 0.7); dl.position.set(-4, 8, 5); scene.add(dl);
+    const dl2 = new THREE.DirectionalLight(0xfff0d0, 0.3); dl2.position.set(6, 4, -6); scene.add(dl2);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.25); rim.position.set(0, 3, -8); scene.add(rim);
+
+    grid = new THREE.GridHelper(80, 80, 0x9fb3cf, 0xcbd8ea); scene.add(grid);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshLambertMaterial({ color: 0xe9f0f9 }));
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -0.01; scene.add(floor);
+    worldAxes = new THREE.AxesHelper(1.6); worldAxes.position.set(0, 0.02, 0); worldAxes.visible = false; scene.add(worldAxes);
+
+    /* --- 컨베이어 --- */
+    const len = BELT.x1 - BELT.x0, cx = (BELT.x0 + BELT.x1) / 2;
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(len, 0.34, BELT.w + 0.22), new THREE.MeshLambertMaterial({ color: 0x3f7ef2 }));
+    frame.position.set(cx, BELT.top - 0.22, 0); scene.add(frame);
+    [-1, 1].forEach(sz => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.07), new THREE.MeshLambertMaterial({ color: 0xffc233 }));
+      rail.position.set(cx, BELT.top + 0.05, sz * (BELT.w / 2 + 0.06)); scene.add(rail);
+    });
+    [BELT.x0 + 0.3, BELT.x1 - 0.3].forEach(lx => [-1, 1].forEach(sz => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, BELT.top - 0.38, 0.12), new THREE.MeshLambertMaterial({ color: 0x2f5fbf }));
+      leg.position.set(lx, (BELT.top - 0.38) / 2, sz * (BELT.w / 2 - 0.1)); scene.add(leg);
+    }));
+    const tc = document.createElement('canvas'); tc.width = 64; tc.height = 64;
+    const tg = tc.getContext('2d');
+    tg.fillStyle = '#3d4658'; tg.fillRect(0, 0, 64, 64);
+    tg.fillStyle = 'rgba(255,255,255,.28)'; tg.fillRect(0, 0, 8, 64);
+    beltTex = new THREE.CanvasTexture(tc);
+    beltTex.wrapS = beltTex.wrapT = THREE.RepeatWrapping;
+    beltTex.repeat.set(len * 1.6, 1);
+    const belt = new THREE.Mesh(new THREE.PlaneGeometry(len, BELT.w), new THREE.MeshLambertMaterial({ map: beltTex }));
+    belt.rotation.x = -Math.PI / 2; belt.position.set(cx, BELT.top, 0); scene.add(belt);
+    parts.rollers = [];
+    [BELT.x0, BELT.x1].forEach(x => {
+      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x8d99ae }));
+      r.rotation.x = Math.PI / 2; r.position.set(x, BELT.top - 0.14, 0);
+      r.add(new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xf4f6fa })));
+      scene.add(r); parts.rollers.push(r);
+    });
+    // 구동 서보 (ch5)
+    const drv = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.26), new THREE.MeshLambertMaterial({ color: 0x24314d }));
+    drv.position.set(BELT.x0 - 0.05, BELT.top - 0.16, BELT.w / 2 + 0.2); scene.add(drv);
+
+    /* --- 차단봉 (ch6) : 벨트 건너편 수평 스윕, 0° 차단 / +90° 개방 --- */
+    const servo = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.26), new THREE.MeshLambertMaterial({ color: 0x24314d }));
+    servo.position.set(FLAG.x, BELT.top - 0.02, FLAG.z - 0.1); scene.add(servo);
+    parts.flag = new THREE.Group();
+    parts.flag.position.set(FLAG.x, BELT.top + 0.16, FLAG.z);
+    const horn = new THREE.Mesh(new THREE.BoxGeometry(FLAG.len, 0.05, 0.1), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    horn.position.x = FLAG.len / 2;
+    // 빨강/흰 줄무늬 차단봉
+    const sc = document.createElement('canvas'); sc.width = 64; sc.height = 8;
+    const sg = sc.getContext('2d');
+    sg.fillStyle = '#ffffff'; sg.fillRect(0, 0, 64, 8);
+    sg.fillStyle = '#ef476f'; sg.fillRect(0, 0, 16, 8); sg.fillRect(32, 0, 16, 8);
+    const stripeTex = new THREE.CanvasTexture(sc); stripeTex.wrapS = THREE.RepeatWrapping; stripeTex.repeat.set(2, 1);
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(FLAG.len * 0.66, 0.26, 0.05), new THREE.MeshLambertMaterial({ map: stripeTex }));
+    blade.position.set(FLAG.len * 0.66, 0.06, 0);
+    parts.flag.add(horn); parts.flag.add(blade); scene.add(parts.flag);
+
+    /* --- 로봇팔 (하비서보 브래킷 구조) --- */
+    const MAT = {
+      anod:  new THREE.MeshPhongMaterial({ color: 0x4f8cf7, shininess: 30 }),
+      dark:  new THREE.MeshPhongMaterial({ color: 0x24314d, shininess: 18 }),
+      hub:   new THREE.MeshPhongMaterial({ color: 0xffc233, shininess: 60 }),
+      steel: new THREE.MeshPhongMaterial({ color: 0xc9d2de, shininess: 70 }),
+      pad:   new THREE.MeshPhongMaterial({ color: 0xff8a3d, shininess: 8 })
+    };
+    function servoBlock(scale = 1) {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.22 * scale, 0.4 * scale, 0.44 * scale), MAT.dark));
+      const ears = new THREE.Mesh(new THREE.BoxGeometry(0.22 * scale, 0.05 * scale, 0.64 * scale), MAT.dark);
+      ears.position.y = 0.12 * scale; g.add(ears);
+      const gearbox = new THREE.Mesh(new THREE.CylinderGeometry(0.07 * scale, 0.07 * scale, 0.08 * scale, 14), MAT.steel);
+      gearbox.rotation.z = Math.PI / 2; gearbox.position.set(0.13 * scale, 0.1 * scale, 0.1 * scale); g.add(gearbox);
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.1 * scale, 0.3 * scale), MAT.hub);
+      stripe.position.x = 0.111 * scale; g.add(stripe);
+      return g;
+    }
+    function plate(len, wid, thk) {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(wid, len, thk), MAT.anod);
+      body.position.y = len / 2; g.add(body);
+      [0, len].forEach(y => {
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(wid / 2, wid / 2, thk, 16), MAT.anod);
+        cap.rotation.x = Math.PI / 2; cap.position.y = y; g.add(cap);
+      });
+      return g;
+    }
+    function uLink(len, wid, gap) {
+      const g = new THREE.Group();
+      [-1, 1].forEach(sgn => { const pl = plate(len, wid, 0.05); pl.position.z = sgn * gap / 2; g.add(pl); });
+      const web = new THREE.Mesh(new THREE.BoxGeometry(wid * 0.5, len * 0.72, gap - 0.02), MAT.anod);
+      web.position.y = len * 0.5; g.add(web);
+      return g;
+    }
+    const bolt = (x, y, z, r = 0.028, h = 0.04) => {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 8), MAT.steel);
+      b.position.set(x, y, z); return b;
+    };
+
+    parts.armRoot = new THREE.Group(); parts.armRoot.position.set(BASE.x, 0, BASE.z);
+    parts.armRoot.rotation.y = Math.PI / 2;   // ch1=90° 에서 팔 정면(로컬 +x)이 벨트(-z)를 향함
+    scene.add(parts.armRoot);
+    parts.armProc = new THREE.Group(); parts.armRoot.add(parts.armProc);
+    const P = parts.armProc;
+
+    const basePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.66, 0.06, 28), MAT.anod);
+    basePlate.position.y = 0.03; P.add(basePlate);
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4;
+      P.add(bolt(Math.cos(a) * 0.5, 0.07, Math.sin(a) * 0.5));
+    }
+    const column = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 0.34, 24), MAT.dark);
+    column.position.y = 0.23; P.add(column);
+    const bearing = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.05, 28), MAT.steel);
+    bearing.position.y = 0.42; P.add(bearing);
+
+    // ch1 베이스 요
+    parts.yaw = new THREE.Group(); parts.yaw.position.y = 0.45; P.add(parts.yaw);
+    const turn = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.07, 28), MAT.anod);
+    turn.position.y = 0.035; parts.yaw.add(turn);
+    const sv1 = servoBlock(0.95); sv1.position.set(-0.02, 0.28, 0); parts.yaw.add(sv1);
+    const shoulderBr = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.5), MAT.anod);
+    shoulderBr.position.y = 0.52; parts.yaw.add(shoulderBr);
+    const sv2 = servoBlock(1.0); sv2.position.set(0, 0.62, 0); sv2.rotation.y = Math.PI / 2; parts.yaw.add(sv2);
+    parts.yaw.add(bolt(0.14, 0.57, 0.2)); parts.yaw.add(bolt(-0.14, 0.57, -0.2));
+
+    // ch2 어깨 → 상완
+    parts.link1 = new THREE.Group(); parts.link1.position.y = 0.62; parts.yaw.add(parts.link1);
+    const hub1 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.46, 18), MAT.hub);
+    hub1.rotation.x = Math.PI / 2; parts.link1.add(hub1);
+    parts.link1.add(uLink(L1, 0.26, 0.42));
+    const rib1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, L1 * 0.8, 0.06), MAT.steel);
+    rib1.position.set(0.14, L1 * 0.5, 0); parts.link1.add(rib1);
+
+    // ch3 팔꿈치 → 전완
+    parts.link2 = new THREE.Group(); parts.link2.position.y = L1; parts.link1.add(parts.link2);
+    const sv3 = servoBlock(0.85); sv3.position.set(0, 0.1, 0); sv3.rotation.y = Math.PI / 2; parts.link2.add(sv3);
+    const hub2 = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.4, 18), MAT.hub);
+    hub2.rotation.x = Math.PI / 2; parts.link2.add(hub2);
+    parts.link2.add(uLink(L2, 0.21, 0.34));
+
+    // ch4 손목 · 평행 집게
+    parts.wrist = new THREE.Group(); parts.wrist.position.y = L2; parts.link2.add(parts.wrist);
+    const wristHub = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.3, 16), MAT.hub);
+    wristHub.rotation.x = Math.PI / 2; parts.wrist.add(wristHub);
+    const sv4 = servoBlock(0.7); sv4.position.set(0, 0.16, 0); sv4.rotation.y = Math.PI / 2; parts.wrist.add(sv4);
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.07, 0.46), MAT.anod);
+    palm.position.y = 0.34; parts.wrist.add(palm);
+    parts.jaws = [];
+    [-1, 1].forEach(sgn => {
+      const jaw = new THREE.Group();
+      const finger = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.46, 0.08), MAT.anod);
+      finger.position.y = 0.23; jaw.add(finger);
+      const tip = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.22, 0.07), MAT.pad);
+      tip.position.set(0, 0.42, -sgn * 0.05); jaw.add(tip);
+      const grip = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.2, 0.02), MAT.hub);
+      grip.position.set(0, 0.42, -sgn * 0.085); jaw.add(grip);
+      const linkbar = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.2, 0.04), MAT.steel);
+      linkbar.position.set(0, 0.06, -sgn * 0.04); linkbar.rotation.x = sgn * 0.25; jaw.add(linkbar);
+      jaw.position.set(0, 0.17, sgn * 0.12);
+      parts.wrist.add(jaw); parts.jaws.push(jaw);
+    });
+
+    // 재질 개별화(뼈대/선택 하이라이트용) + 채널 태깅 (안쪽부터)
+    P.traverse(o => { if (o.isMesh) o.material = o.material.clone(); });
+    const tag = (g, ch) => g.traverse(o => { if (o.isMesh && !o.userData.ch) o.userData.ch = ch; });
+    tag(parts.wrist, 4); tag(parts.link2, 3); tag(parts.link1, 2); tag(P, 1);
+    // 회전축 표시
+    [parts.yaw, parts.link1, parts.link2, parts.wrist].forEach(g => {
+      const ax = new THREE.AxesHelper(0.55); ax.visible = false; g.add(ax); procAxes.push(ax);
+    });
+
+    const l1s = label('lbl.arm', '#3f7ef2'); l1s.position.set(BASE.x, 0.3, BASE.z + 1.0); scene.add(l1s);
+    const l2s = label('lbl.belt', '#24314d'); l2s.position.set(BELT.x0 + 0.25, BELT.top + 0.55, 0); scene.add(l2s);
+    const l3s = label('lbl.flag', '#ef476f'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); scene.add(l3s);
+  }
+
+  const gripGapMm = v => 45 - (v / 180) * 30;      // 0 = 열림 45mm, 180 = 닫힘 15mm
+
+  /* --- 카메라 --- */
+  // 카메라는 +z(팔 쪽)에서 -z 방향을 봄 → 화면 오른쪽 = +x, 화면 위 = -z(차단봉 쪽)
+  const CAM = {
+    all:  { t: [0, 0.8, 0.5], d: 9.4, th: 1.3, ph: 0.9 },
+    arm:  { t: [BASE.x, 1.2, BASE.z - 0.6], d: 4.8, th: 1.0, ph: 1.0 },
+    belt: { t: [(BELT.x0 + BELT.x1) / 2, 1.0, 0], d: 6.4, th: 1.45, ph: 0.85 },
+    flag: { t: [FLAG.x, 1.05, FLAG.z + 0.3], d: 2.8, th: 1.1, ph: 0.95 },
+    top:  { t: [0, 0.9, 0.6], d: 10.5, th: Math.PI / 2, ph: 0.12 }
+  };
+  const view = { target: null, dist: CAM.all.d, theta: CAM.all.th, phi: CAM.all.ph };
+  function updateCamera() {
+    view.dist = clamp(view.dist, 0.9, 80);
+    view.phi = clamp(view.phi, 0.08, 1.5);
+    const tg = view.target;
+    camera.position.set(
+      tg.x + view.dist * Math.sin(view.phi) * Math.cos(view.theta),
+      tg.y + view.dist * Math.cos(view.phi),
+      tg.z + view.dist * Math.sin(view.phi) * Math.sin(view.theta));
+    camera.lookAt(tg);
+    $('camZoom').value = clamp(12 / view.dist, 0.15, 10).toFixed(2);
+    $('camZoomTxt').textContent = (12 / view.dist).toFixed(1) + 'x';
+  }
+  function setCam(c) {
+    view.target.set(c.t[0], c.t[1], c.t[2]);
+    view.dist = c.d; view.theta = c.th; view.phi = c.ph;
+  }
+  function resize() {
+    if (!renderer) return;
+    const r = cv.parentElement.getBoundingClientRect();
+    const W = Math.max(320, r.width), H = Math.max(240, r.height);
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setSize(W, H, false);
+    camera.aspect = W / H; camera.updateProjectionMatrix();
+  }
+
+  function render3d() {
+    if (!renderer) return;
+    const [j1, j2, j3, j4] = sim.joints.map(j => j.cur);
+    parts.yaw.rotation.y = (j1 - 90) * Math.PI / 180;
+    parts.link1.rotation.z = -(j2 - 90) * Math.PI / 180;
+    parts.link2.rotation.z = -(j3 - 90) * Math.PI / 180;
+    const open = (1 - j4 / 180) * 0.26 + 0.07;
+    parts.jaws[0].position.z = -open; parts.jaws[1].position.z = open;
+    // 차단봉: 0 = 벨트 가로질러 차단(+z 방향), +90 = 하류(+x)로 눕혀 개방.
+    const rel = sim.joints[4].cur - 90;
+    parts.flag.rotation.y = clamp(rel - 90, -200, 20) * Math.PI / 180;
+    beltTex.offset.x += sim.roller * 0.0016;
+    parts.rollers.forEach(r => r.rotation.y -= sim.roller * 0.004);
+    updateCamera();
+    renderer.render(scene, camera);
+  }
+
+  /* --- 뷰 도구 --- */
+  $('btnGrid').onclick = function () { if (!HAS3D) return; grid.visible = !grid.visible; this.classList.toggle('on', grid.visible); };
+  $('btnWire').onclick = function () {
+    if (!HAS3D) return;
+    wireMode = !wireMode; this.classList.toggle('on', wireMode);
+    parts.armRoot.traverse(o => { if (o.isMesh) o.material.wireframe = wireMode; });
+  };
+  $('btnAxes').onclick = function () {
+    if (!HAS3D) return;
+    axisMode = !axisMode; this.classList.toggle('on', axisMode);
+    worldAxes.visible = axisMode;
+    procAxes.forEach(a => a.visible = axisMode);
+  };
+  $('btnShot').onclick = () => {
+    if (!renderer) return;
+    renderer.render(scene, camera);
+    cv.toBlob(b => b && download('arm_conveyor.png', b), 'image/png');
+  };
+
+  /* --- 부품 클릭 선택 → 채널 하이라이트 --- */
+  const raycaster = HAS3D ? new THREE.Raycaster() : null;
+  let picked = null, pickedColor = 0, tipTimer = 0;
+  function pickAt(clientX, clientY) {
+    const rect = cv.getBoundingClientRect();
+    const m = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(m, camera);
+    const list = [];
+    parts.armProc.traverse(o => { if (o.isMesh) list.push(o); });
+    const hits = raycaster.intersectObjects(list, false);
+    if (picked) { picked.material.emissive && picked.material.emissive.setHex(pickedColor); picked = null; }
+    document.querySelectorAll('.strip.hl').forEach(el => el.classList.remove('hl'));
+    if (!hits.length) { $('tip').style.display = 'none'; return; }
+    picked = hits[0].object;
+    if (picked.material.emissive) { pickedColor = picked.material.emissive.getHex(); picked.material.emissive.setHex(0x8a5a00); }
+    const ch = picked.userData.ch || 1;
+    const row = document.querySelector(`.strip.arm[data-ch="${ch}"]`);
+    if (row) { row.classList.add('hl'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    const tip = $('tip');
+    tip.textContent = `ch${ch} · ${t(CH_KEY[ch - 1])}`;
+    tip.style.left = (clientX - rect.left + 10) + 'px'; tip.style.top = (clientY - rect.top + 8) + 'px';
+    tip.style.display = 'block';
+    clearTimeout(tipTimer); tipTimer = setTimeout(() => { tip.style.display = 'none'; }, 2000);
+  }
+
+  /* ===== 타임라인 (ch1-4) ===== */
+  const tl = { kfs: [], nextId: 0, t: 0, dur: 30, playing: false, speed: 1, loop: false, sel: null, last: null, dragId: null, seeking: false };
+  const tlCanvas = $('tlCanvas'), tlWrap = $('tlWrap');
+  let tlW = 300, tlH = 60;
+  const TL_PAD = 10;
+  function resizeTl() {
+    const r = tlWrap.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    tlW = Math.max(50, r.width); tlH = Math.max(30, r.height);
+    tlCanvas.width = Math.round(tlW * dpr); tlCanvas.height = Math.round(tlH * dpr);
+    tlCanvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  const tToX = tt => TL_PAD + (tt / tl.dur) * (tlW - TL_PAD * 2);
+  const xToT = x => Math.round(clamp((x - TL_PAD) / (tlW - TL_PAD * 2), 0, 1) * tl.dur);
+  const sortedKfs = () => [...tl.kfs].sort((a, b) => a.time - b.time);
+  const kfCount = () => { $('tlKfCount').textContent = t('tl.kf', { n: tl.kfs.length }); };
+
+  function applyArm(vals) {
+    vals.forEach((v, i) => { simSet(i, v); setSlider(i + 1, Math.round(v)); });
+    liveArmTick();
+  }
+  function applyAtTime(tt) {
+    const s = sortedKfs(); if (!s.length) return;
+    if (s.length === 1 || tt <= s[0].time) return applyArm(s[0].joints);
+    if (tt >= s[s.length - 1].time) return applyArm(s[s.length - 1].joints);
+    let a = s[0], b = s[1];
+    for (let i = 0; i < s.length - 1; i++) if (s[i].time <= tt && s[i + 1].time >= tt) { a = s[i]; b = s[i + 1]; break; }
+    const al = b.time === a.time ? 1 : (tt - a.time) / (b.time - a.time);
+    const e = al * al * (3 - 2 * al);
+    applyArm(a.joints.map((v, i) => v + (b.joints[i] - v) * e));
+  }
+  function addKeyframe() {
+    const time = Math.round(tl.t);
+    const ex = tl.kfs.find(k => k.time === time);
+    if (ex) { ex.joints = armVals(); tl.sel = ex.id; }
+    else { const k = { id: tl.nextId++, time, joints: armVals() }; tl.kfs.push(k); tl.sel = k.id; }
+    tl.t = time; kfCount();
+  }
+  function setPlay(on) {
+    tl.playing = on; tl.last = null;
+    $('tlPlay').textContent = on ? '❚❚' : '▶';
+    $('tlPlay').classList.toggle('on', on);
+  }
+  function tlTick(now) {
+    if (tl.playing) {
+      if (tl.last !== null) {
+        tl.t += (now - tl.last) / 1000 * tl.speed;
+        if (tl.t >= tl.dur) {
+          if (tl.loop) tl.t %= tl.dur;
+          else { tl.t = tl.dur; setPlay(false); }
+        }
+      }
+      if (tl.playing) tl.last = now;
+      applyAtTime(tl.t);
+    }
+    drawTimeline();
+    $('tlTime').textContent = tl.t.toFixed(2) + 's';
+  }
+  function drawTimeline() {
+    const g = tlCanvas.getContext('2d'), W = tlW, H = tlH, TH = H - 14, mid = TH / 2;
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = '#f4f7fd'; g.fillRect(0, 0, W, H);
+    const step = tl.dur <= 30 ? 1 : tl.dur <= 60 ? 2 : 5;
+    g.font = '500 9px "DM Mono", "Courier New", monospace';
+    for (let tt = 0; tt <= tl.dur; tt += step) {
+      const x = Math.round(tToX(tt)) + .5;
+      g.strokeStyle = tt % 5 === 0 ? '#c9d5e8' : '#e3eaf5'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, TH); g.stroke();
+      if (tt % (step * 5) === 0 || step === 1 && tt % 5 === 0) { g.fillStyle = '#7d89a6'; g.fillText(tt + 's', x + 2, H - 3); }
+    }
+    const ex = Math.round(tToX(tl.dur)) + .5;
+    g.strokeStyle = '#3f7ef2'; g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(ex, 0); g.lineTo(ex, TH); g.stroke(); g.setLineDash([]);
+    const s = sortedKfs();
+    if (s.length > 1) {
+      g.strokeStyle = '#9fb3cf'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(tToX(s[0].time), mid);
+      s.slice(1).forEach(k => g.lineTo(tToX(k.time), mid)); g.stroke();
+    }
+    for (const k of s) {
+      const x = tToX(k.time), sel = k.id === tl.sel, R = sel ? 8 : 6;
+      g.fillStyle = sel ? '#ffc233' : '#3f7ef2';
+      g.beginPath(); g.moveTo(x, mid - R); g.lineTo(x + R, mid); g.lineTo(x, mid + R); g.lineTo(x - R, mid); g.closePath(); g.fill();
+      if (sel) { g.strokeStyle = '#e0a400'; g.lineWidth = 1.5; g.stroke(); g.fillStyle = '#24314d'; g.fillText(k.joints.map(Math.round).join(','), x + 10, mid - 8); }
+    }
+    const px = tToX(tl.t);
+    g.strokeStyle = '#ef476f'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(px, 0); g.lineTo(px, TH); g.stroke();
+    g.fillStyle = '#ef476f';
+    g.beginPath(); g.moveTo(px - 5, 0); g.lineTo(px + 5, 0); g.lineTo(px, 7); g.closePath(); g.fill();
+  }
+  const tlX = e => e.clientX - tlCanvas.getBoundingClientRect().left;
+  const kfAt = x => tl.kfs.find(k => Math.abs(tToX(k.time) - x) < 8) || null;
+  tlCanvas.addEventListener('pointerdown', e => {
+    const x = tlX(e), k = kfAt(x);
+    tlCanvas.setPointerCapture(e.pointerId);
+    if (k) { tl.sel = k.id; tl.dragId = k.id; tl.t = k.time; if (!tl.playing) applyAtTime(k.time); }
+    else { tl.seeking = true; tl.t = xToT(x); if (!tl.playing) applyAtTime(tl.t); }
+  });
+  tlCanvas.addEventListener('pointermove', e => {
+    if (tl.dragId !== null) {
+      const k = tl.kfs.find(q => q.id === tl.dragId);
+      if (k) { k.time = xToT(tlX(e)); tl.t = k.time; if (!tl.playing) applyAtTime(k.time); }
+    } else if (tl.seeking) { tl.t = xToT(tlX(e)); if (!tl.playing) applyAtTime(tl.t); }
+  });
+  const tlUp = () => { tl.dragId = null; tl.seeking = false; };
+  tlCanvas.addEventListener('pointerup', tlUp);
+  tlCanvas.addEventListener('pointercancel', tlUp);
+  tlCanvas.addEventListener('dblclick', e => { tl.t = xToT(tlX(e)); addKeyframe(); });
+
+  $('tlToStart').onclick = () => { setPlay(false); tl.t = 0; applyAtTime(0); };
+  $('tlPlay').onclick = () => {
+    if (!tl.kfs.length) { log(t('log.needKf'), 'err'); return; }
+    if (!tl.playing && tl.t >= tl.dur) tl.t = 0;
+    setPlay(!tl.playing);
+    if (tl.playing) liveArmTick(true);
+  };
+  $('tlStop').onclick = () => { setPlay(false); tl.t = 0; applyAtTime(0); };
+  $('tlAdd').onclick = addKeyframe;
+  $('tlDel').onclick = () => { if (tl.sel === null) return; tl.kfs = tl.kfs.filter(k => k.id !== tl.sel); tl.sel = null; kfCount(); };
+  $('tlDur').onchange = e => {
+    tl.dur = clamp(Math.round(+e.target.value) || 30, 1, 120); e.target.value = tl.dur;
+    tl.kfs.forEach(k => { k.time = Math.min(k.time, tl.dur); });
+    if (tl.t > tl.dur) tl.t = tl.dur;
+  };
+  $('tlSpeed').onchange = e => { tl.speed = +e.target.value; };
+  $('tlLoop').onclick = function () { tl.loop = !tl.loop; this.classList.toggle('on', tl.loop); };
+  $('tlSave').onclick = () => {
+    if (!tl.kfs.length) { log(t('log.needKf'), 'err'); return; }
+    const fmt = d => Number.isInteger(d) ? String(d) : d.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    const s = sortedKfs(), lines = [];
+    s.forEach((k, i) => {
+      lines.push('m:' + k.joints.map((v, j) => withCal(j + 1, v)).join(','));   // 보정 포함 모터값
+      if (i < s.length - 1) { const dt = s[i + 1].time - k.time; if (dt > 0) lines.push('sleep ' + fmt(dt)); }
+    });
+    download('motion.txt', new Blob([lines.join('\n') + '\n'], { type: 'text/plain' }));
+    log(t('log.motionSaved', { n: s.length }), 'sys');
+  };
+  $('tlLoad').onclick = () => $('motionFileIn').click();
+  $('motionFileIn').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    const raw = (await f.text()).trim();
+    const names = DEFAULT_JOINT_NAMES;
+    try {
+      if (raw[0] === '{') {                                   // robot-arm-sim JSON
+        const d = JSON.parse(raw);
+        tl.dur = clamp(Math.round(d.duration || 30), 1, 120);
+        tl.kfs = (d.keyframes || []).map((k, i) => ({
+          id: i, time: Math.round(k.time || 0),
+          joints: Array.isArray(k.joints) ? k.joints.slice(0, 4).map(Number)
+                  : names.map((n, j) => +(k.joints?.[n] ?? (j === 3 ? 0 : 90)))
+        }));
+      } else {                                               // m:.. / #m:..! / sleep 초
+        const kfs = []; let tt = 0;
+        for (const ln of raw.split(/\r?\n/)) {
+          const s = ln.trim(); if (!s) continue;
+          if (/^#?m:/.test(s)) {
+            const n = s.replace(/^#?m:/, '').replace(/!$/, '').split(',').map(x => parseInt(x.trim(), 10));
+            // 저장값은 보정 포함 → 슬라이더 값으로 되돌림
+            kfs.push({ id: kfs.length, time: Math.round(tt), joints: [0, 1, 2, 3].map(j => clamp((isNaN(n[j]) ? 90 : n[j]) - calOf(j + 1), 0, 180)) });
+          } else if (/^sleep/i.test(s)) tt += parseFloat(s.replace(/sleep/i, '').trim()) || 0;
+        }
+        tl.kfs = kfs;
+        tl.dur = clamp(Math.max(5, Math.ceil(tt)), 1, 120);
+      }
+      tl.nextId = tl.kfs.reduce((m, k) => Math.max(m, k.id + 1), 0);
+      $('tlDur').value = tl.dur; tl.sel = null; tl.t = 0; setPlay(false);
+      kfCount(); applyAtTime(0);
+      log(t('log.motionLoaded', { name: f.name, n: tl.kfs.length, dur: tl.dur }), 'sys');
+    } catch (err) { log(t('log.motionErr', { msg: err.message }), 'err'); }
+  });
+
+  /* ===== 프레임 루프 ===== */
+  let fpsN = 0, fpsT = performance.now();
+  function frame(now) {
+    simTick(now);
+    tlTick(now);
+    render3d();
+    updateHud();
+    fpsN++;
+    if (now - fpsT >= 1000) { $('fpsTxt').textContent = 'FPS ' + fpsN; fpsN = 0; fpsT = now; }
+    requestAnimationFrame(frame);
+  }
+
+  const CH_ROWS = [
+    { i: 0, ch: 1, key: 'row.base' }, { i: 1, ch: 2, key: 'row.shld' },
+    { i: 2, ch: 3, key: 'row.elbw' }, { i: 3, ch: 4, key: 'row.grip' },
+    { i: 4, ch: 6, key: 'row.flag' }
+  ];
+  function updateHud() {
+    const rows = CH_ROWS.map(c => {
+      const j = sim.joints[c.i];
+      const to = Math.round(j.to), cur = Math.round(j.cur);
+      const st = sim.released ? 'var(--red)' : j.dur > 0 ? 'var(--orange)' : 'var(--muted)';
+      const shown = c.ch === 6 ? `${to - 90}°` : `${to}°`;
+      const shownCur = c.ch === 6 ? `${cur - 90}°` : `${cur}°`;
+      const us = c.ch === 6 ? angToUs(cur) : angToUs(withCal(c.ch, cur));
+      return `<tr><td>ch${c.ch}</td><td>${t(c.key)}</td>` +
+             `<td class="r">${shown}</td><td class="r" style="color:${st}">${shownCur}</td>` +
+             `<td class="r">${us}µs</td></tr>`;
+    });
+    rows.push(`<tr><td>ch5</td><td>${t('row.roll')}</td><td class="r">${sim.roller}</td>` +
+              `<td class="r" style="color:${sim.roller ? 'var(--green)' : 'var(--muted)'}">${sim.roller ? t('row.run') : t('row.stop')}</td>` +
+              `<td class="r">${sim.roller ? angToUs(90 + sim.roller) + 'µs' : t('row.cut')}</td></tr>`);
+    $('chTable').innerHTML = rows.join('');
+    for (let i = 1; i <= 4; i++) {
+      const v = +$('v' + i).value;
+      let s = angToUs(withCal(i, v)) + 'µs';
+      if (i === 4) s = Math.round(gripGapMm(v)) + 'mm ' + s;
+      else if (calibMode) { const o = calOf(i); s = `(${o >= 0 ? '+' : ''}${o}) ` + s; }
+      $('u' + i).textContent = s;
+    }
+    $('u5').textContent = +$('rollerVal').value ? angToUs(90 + +$('rollerVal').value) + 'µs' : t('row.cut');
+    $('u6').textContent = angToUs(+$('flagVal').value + 90) + 'µs';
+    const b = simBusy() || sim.roller !== 0 || seqRunning || tl.playing;
+    $('lampBusy').className = b ? 'busy' : '';
+    $('lampBusyTxt').textContent = sim.released ? t('hdr.released') : tl.playing ? t('hdr.playing') : b ? t('hdr.working') : t('hdr.idle');
+    $('calibTxt').textContent = hasCal() ? `${t('cal.txt')} ${cal.map(v => (v >= 0 ? '+' : '') + v).join(' / ')}` : '';
+  }
+
+  /* ===== 연결 ===== */
+  function describePort(p) {
+    try {
+      const i = p.getInfo();
+      if (i && i.usbVendorId != null) {
+        const h = n => n.toString(16).toUpperCase().padStart(4, '0');
+        return `VID:${h(i.usbVendorId)} PID:${h(i.usbProductId)}`;
+      }
+    } catch {}
+    return t('port.generic');
+  }
+  function setConnected(on, info = '') {
+    $('lampLink').className = on ? 'on' : '';
+    $('lampLinkTxt').textContent = on ? `${info} · ${$('baudSel').value}` : t('hdr.noboard');
+    $('btnConnect').disabled = on || !('serial' in navigator);
+    $('btnDisconnect').disabled = !on;
+    $('baudSel').disabled = on;
+  }
+  async function openPort(p) {
+    const baud = parseInt($('baudSel').value, 10) || 115200;
+    await p.open({ baudRate: baud });
+    port = p;
+    writer = port.writable.getWriter();
+    lastPacket = '';
+    setConnected(true, describePort(p)); log(t('log.connected', { info: describePort(p), baud }), 'sys');
+    readLoop();
+    setTimeout(() => send('#ver!', { local: false }), 300);
+    setTimeout(() => send('#pos!', { local: false }), 500);
+  }
+  async function connect() {
+    try { await openPort(await navigator.serial.requestPort()); }
+    catch (e) { log(t('log.connFail', { msg: e.message }), 'err'); await disconnect(); }
+  }
+  async function autoReconnect() {
+    if (!('serial' in navigator) || !$('autoRe').checked) return;
+    try {
+      const ports = await navigator.serial.getPorts();
+      if (ports.length) { log(t('log.autoRe', { info: describePort(ports[0]) }), 'sys'); await openPort(ports[0]); }
+    } catch (e) { log(t('log.autoReFail', { msg: e.message }), 'err'); port = null; setConnected(false); }
+  }
+  async function disconnect() {
+    seqAbort = true;
+    try { if (reader) await reader.cancel(); } catch {}
+    try { if (writer) { writer.releaseLock(); writer = null; } } catch {}
+    try { if (port) await port.close(); } catch {}
+    const was = !!port;
+    port = null; writer = null; setConnected(false);
+    if (was) log(t('log.disconnected'), 'sys');
+  }
+  async function readLoop() {
+    while (port && port.readable) {
+      reader = port.readable.getReader();
+      try {
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          rxLine += dec.decode(value, { stream: true });
+          let i;
+          while ((i = rxLine.search(/\r?\n/)) >= 0) {
+            const line = rxLine.slice(0, i).trim();
+            rxLine = rxLine.slice(i + (rxLine[i] === '\r' ? 2 : 1));
+            if (line) onLine(line);
+          }
+        }
+      } catch (e) { log(t('log.rxErr', { msg: e.message }), 'err'); }
+      finally { try { reader.releaseLock(); } catch {} reader = null; }
+      break;
+    }
+    if (port) disconnect();
+  }
+  function onLine(line) {
+    log(line, /^Err|\[ERR\]|\[REJ|collision/.test(line) ? 'err' : 'rx');
+    const mm = line.match(/arm:\s*([\d,\s-]+?)\s+sort:\s*(-?\d+)\s+roller:\s*(-?\d+)/);
+    if (mm) {
+      if (/^(Moved|Stopped):/.test(line)) busy = false;
+      const a = mm[1].split(',').map(Number);
+      if (a.length === 4 && !tl.playing) a.forEach((v, i) => {
+        const s = clamp(v - calOf(i + 1), 0, 180);             // 로봇값(보정 포함) → 슬라이더 값
+        const j = sim.joints[i]; j.cur = s; j.to = s; j.dur = 0; setSlider(i + 1, s);
+      });
+      const f = +mm[2];
+      sim.joints[4].cur = f + 90; sim.joints[4].to = f + 90; sim.joints[4].dur = 0;
+      $('flag').value = $('flagVal').value = f;
+      sim.roller = +mm[3]; $('roller').value = $('rollerVal').value = mm[3];
+    }
+    if (/^\d$/.test(line)) busy = line === '1';
+  }
+
+  /* ===== 송신 ===== */
+  function applyLocal(cmd) {
+    let x;
+    if ((x = cmd.match(/^#m:(-?\d+),(-?\d+),(-?\d+),(-?\d+)/))) { for (let i = 0; i < 4; i++) simMove(i, +x[i + 1]); }
+    else if ((x = cmd.match(/^#j:(\d+),(-?\d+)/))) simMove(+x[1] - 1, +x[2]);
+    else if ((x = cmd.match(/^#m1:(-?\d+)(?:,(\d+))?/))) {
+      sim.roller = clamp(+x[1], -90, 90);
+      sim.rollerUntil = (x[2] && sim.roller) ? performance.now() + +x[2] : 0;
+    }
+    else if ((x = cmd.match(/^#m2:(-?\d+)(?:,(\d+))?/))) {
+      simMove(4, clamp(+x[1], -90, 90) + 90);
+      sim.flagReturnAt = x[2] ? performance.now() + +x[2] : 0;
+    }
+    else if ((x = cmd.match(/^#s:(\d+),([\d.]+)/))) { const j = sim.joints[+x[1] - 1]; if (j) j.dps = +x[2]; }
+    else if ((x = cmd.match(/^#e:(\d)/))) sim.easing = x[1] === '1';
+    else if (/^#home/.test(cmd)) { for (let i = 0; i < 5; i++) simMove(i, 90); sim.roller = 0; sim.rollerUntil = 0; }
+    else if (/^#stop/.test(cmd)) { simStop(); sim.roller = 0; sim.rollerUntil = 0; sim.flagReturnAt = 0; }
+    else if (/^#off/.test(cmd)) { simStop(); sim.roller = 0; sim.released = true; }
+    else if (/^#on/.test(cmd)) sim.released = false;
+    else if ((x = cmd.match(/^#raw:(\d+),(\d+)/))) {
+      const ch = +x[1], ang = clamp(Math.round((+x[2] - 544) / (2400 - 544) * 180), 0, 180);
+      if (ch === 5) sim.roller = ang - 90;
+      else if (ch === 6) simMove(4, ang);
+      else if (ch >= 1 && ch <= 4) simMove(ch - 1, ang);
+    }
+  }
+  // opt.local=false : 3D 반영 생략(타임라인이 직접 구동) / opt.quiet : 미연결 시 로그 생략
+  async function send(cmd, opt = {}) {
+    if (!cmd.endsWith('!')) cmd += '!';
+    if (opt.local !== false) applyLocal(cmd);
+    if (/^#(m:|m2:|j:|home)/.test(cmd)) busy = true;
+    const out = calOut(cmd);
+    const note = out !== cmd ? '   ' + t('log.preCal', { cmd }) : '';
+    if (!writer) { if (!opt.quiet) log(out + '   ' + t('log.viewOnly'), 'tx'); return; }
+    try { await writer.write(enc.encode(out)); log(out + note, 'tx'); }
+    catch (e) { log(t('log.txFail', { msg: e.message }), 'err'); }
+  }
+
+  // 실시간: 슬라이더/미세조정/타임라인 값을 #m 으로 주기 전송 (값 바뀔 때만)
+  let lastPacket = '', lastSendT = 0, pendTimer = 0;
+  function sendArmNow(force) {
+    if (!writer) return;
+    const p = `#m:${armVals().join(',')}!`;
+    if (!force && p === lastPacket) return;
+    lastPacket = p; lastSendT = performance.now();
+    send(p, { local: false, quiet: true });
+  }
+  function liveArmTick(force) {
+    if (!$('liveArm').checked || !writer) return;
+    if (force) { clearTimeout(pendTimer); sendArmNow(true); return; }
+    const now = performance.now();
+    if (now - lastSendT >= SEND_INTERVAL) sendArmNow();
+    else { clearTimeout(pendTimer); pendTimer = setTimeout(() => sendArmNow(), SEND_INTERVAL - (now - lastSendT)); }
+  }
+
+  /* ===== 컨트롤 ===== */
+  function setSlider(i, v) { $('j' + i).value = v; $('v' + i).value = v; }
+  function setJoint(i, v) {
+    v = clamp(Math.round(+v || 0), 0, 180);
+    setSlider(i, v);
+    if ($('liveArm').checked) send(`#j:${i},${v}!`); else simMove(i - 1, v);
+  }
+  for (let i = 1; i <= 4; i++) {
+    $('j' + i).addEventListener('input', e => { if (tl.playing) setPlay(false); $('v' + i).value = e.target.value; simMove(i - 1, +e.target.value); });
+    $('j' + i).addEventListener('change', e => setJoint(i, e.target.value));
+    $('v' + i).addEventListener('change', e => setJoint(i, e.target.value));
+  }
+  const armVals = () => [1, 2, 3, 4].map(i => clamp(Math.round(+$('v' + i).value || 0), 0, 180));
+
+  // −/+ 미세조정 (클릭 1°, 길게 누르면 연속) — 영점 모드에서는 ch1-3 오프셋 조정
+  function nudge(ch, dir) {
+    if (calibMode && ch <= 3) {
+      cal[ch - 1] = clamp(cal[ch - 1] + dir, -90, 90);
+      saveCal();
+      if ($('liveArm').checked) sendArmNow(true);
+      return;
+    }
+    if (tl.playing) setPlay(false);
+    const v = clamp(+$('v' + ch).value + dir, 0, 180);
+    setSlider(ch, v);
+    simMove(ch - 1, v);
+    liveArmTick();
+  }
+  document.querySelectorAll('.nb').forEach(btn => {
+    const ch = +btn.dataset.ch, dir = +btn.dataset.dir;
+    let to = 0, iv = 0;
+    const stop = () => { clearTimeout(to); clearInterval(iv); to = iv = 0; };
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault(); btn.setPointerCapture(e.pointerId);
+      nudge(ch, dir);
+      to = setTimeout(() => { iv = setInterval(() => nudge(ch, dir), 60); }, 350);
+    });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => btn.addEventListener(ev, stop));
+  });
+
+  $('btnCalib').onclick = function () {
+    calibMode = !calibMode;
+    this.classList.toggle('on', calibMode);
+    document.body.classList.toggle('calib', calibMode);
+    $('btnCalibReset').hidden = !calibMode;
+    $('calibHelp').hidden = !calibMode;
+    if (calibMode) { if (!$('liveArm').checked) log(t('log.calLive'), 'sys'); sendArmNow(true); }
+  };
+  $('btnCalibReset').onclick = () => { cal = [0, 0, 0]; saveCal(); sendArmNow(true); log(t('log.calReset'), 'sys'); };
+
+  $('btnArmMove').onclick   = () => send(`#m:${armVals().join(',')}!`);
+  $('btnArmHome').onclick   = () => {
+    setPlay(false);
+    [1, 2, 3, 4].forEach(i => setSlider(i, 90)); $('flag').value = $('flagVal').value = 0;
+    send('#home!');
+    if (hasCal()) send('#m:90,90,90,90!', { local: false });   // 펌웨어 홈(90)에 보정 오프셋 반영
+  };
+  $('btnReset').onclick = () => {
+    setPlay(false);
+    [90, 90, 90, 0].forEach((v, i) => { setSlider(i + 1, v); simMove(i, v); });
+    if ($('liveArm').checked) sendArmNow(true);
+  };
+  $('btnGripOpen').onclick  = () => { setSlider(4, 30);  send('#j:4,30!'); };
+  $('btnGripClose').onclick = () => { setSlider(4, 150); send('#j:4,150!'); };
+  $('btnSpeed').onclick = () => send(`#s:${$('spdJoint').value},${$('spdVal').value}!`);
+  $('easing').onchange  = e => send(`#e:${e.target.checked ? 1 : 0}!`);
+  $('btnOff').onclick = () => { setPlay(false); send('#off!'); };
+  $('btnOn').onclick  = () => send('#on!');
+  $('liveArm').onchange = e => { if (e.target.checked) sendArmNow(true); };
+
+  // 자세 프리셋 (브라우저 저장)
+  let poses = {};
+  try { poses = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch {}
+  if (!Object.keys(poses).length) poses = { home: [90,90,90,90], pick: [40,120,110,30], place: [90,120,110,150] };
+  function savePoses() { try { localStorage.setItem(PKEY, JSON.stringify(poses)); } catch {} renderPoses(); }
+  function renderPoses() {
+    const box = $('presets'); box.innerHTML = '';
+    for (const [name, v] of Object.entries(poses)) {
+      const b = document.createElement('button');
+      b.className = 'k'; b.textContent = name; b.title = v.join(',') + '  ' + t('pose.del');
+      b.onclick = ev => {
+        if (ev.shiftKey) { delete poses[name]; savePoses(); return; }
+        setPlay(false);
+        v.forEach((a, i) => setSlider(i + 1, a));
+        send(`#m:${v.join(',')}!`);
+      };
+      box.appendChild(b);
+    }
+  }
+  $('btnPresetSave').onclick = () => {
+    const name = $('presetName').value.trim();
+    if (!name) { log(t('log.poseName'), 'err'); return; }
+    poses[name] = armVals(); savePoses(); $('presetName').value = '';
+  };
+
+  // pose.json (robot-arm-sim 호환: 관절 이름 키)
+  $('btnPoseFileSave').onclick = () => {
+    const names = DEFAULT_JOINT_NAMES, v = armVals(), o = {};
+    names.forEach((n, i) => { o[n] = v[i]; });
+    download('pose.json', new Blob([JSON.stringify(o, null, 2)], { type: 'application/json' }));
+  };
+  $('btnPoseFileLoad').onclick = () => $('poseFileIn').click();
+  $('poseFileIn').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      const names = DEFAULT_JOINT_NAMES;
+      let v;
+      if (Array.isArray(d)) v = d.slice(0, 4);
+      else v = names.map((n, i) => d[n] ?? d['ch' + (i + 1)] ?? Object.values(d)[i]);
+      v = v.map(x => clamp(Math.round(+x), 0, 180)).map((x, i) => isNaN(x) ? +$('v' + (i + 1)).value : x);
+      setPlay(false);
+      v.forEach((a, i) => setSlider(i + 1, a));
+      send(`#m:${v.join(',')}!`);
+      log(t('log.poseLoaded', { name: f.name, v: v.join(',') }), 'sys');
+    } catch (err) { log(t('log.poseErr', { msg: err.message }), 'err'); }
+  });
+
+  // 컨베이어
+  $('roller').addEventListener('input', e => { $('rollerVal').value = e.target.value; sim.roller = +e.target.value; });
+  $('roller').addEventListener('change', e => send(`#m1:${e.target.value}!`));
+  $('rollerVal').addEventListener('change', e => { $('roller').value = e.target.value; send(`#m1:${e.target.value}!`); });
+  $('btnRollerRun').onclick   = () => send(`#m1:${$('rollerVal').value}!`);
+  $('btnRollerStop').onclick  = () => { $('roller').value = $('rollerVal').value = 0; send('#m1:0!'); };
+  $('btnRollerRev').onclick   = () => { const v = -+$('rollerVal').value; $('roller').value = $('rollerVal').value = v; send(`#m1:${v}!`); };
+  $('btnRollerTimed').onclick = () => send(`#m1:${$('rollerVal').value},${$('rollerMs').value}!`);
+
+  $('flag').addEventListener('input', e => { $('flagVal').value = e.target.value; simMove(4, +e.target.value + 90); });
+  $('flag').addEventListener('change', e => send(`#m2:${e.target.value}!`));
+  $('flagVal').addEventListener('change', e => { $('flag').value = e.target.value; send(`#m2:${e.target.value}!`); });
+  const flagTo = v => { $('flag').value = $('flagVal').value = v; send(`#m2:${v}!`); };
+  $('btnFlagL').onclick = () => flagTo(-90);
+  $('btnFlagC').onclick = () => flagTo(0);
+  $('btnFlagR').onclick = () => flagTo(90);
+  $('btnFlagMove').onclick = () => send(`#m2:${$('flagVal').value}!`);
+  $('btnFlagFlip').onclick = () => send(`#m2:${$('flagVal').value || 90},${$('flagMs').value}!`);
+  $('btnRaw').onclick = () => send(`#raw:${$('rawCh').value},${$('rawUs').value}!`);
+
+  $('btnStop').onclick = () => { seqAbort = true; setPlay(false); send('#stop!'); $('roller').value = $('rollerVal').value = 0; };
+  $('btnPos').onclick = () => send('#pos!', { local: false });
+  $('btnSend').onclick = () => { const c = $('cmd').value.trim(); if (c) { send(c); $('cmd').value = ''; } };
+  $('cmd').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnSend').click(); });
+  $('btnClear').onclick = () => { term.innerHTML = ''; };
+
+  /* ===== 순서 프로그램 ===== */
+  async function waitDone(timeoutMs = 15000) {
+    const t0 = Date.now();
+    if (!writer) { while (simBusy() && !seqAbort && Date.now() - t0 < timeoutMs) await sleep(60); return; }
+    busy = true;
+    while (busy && !seqAbort && Date.now() - t0 < timeoutMs) { await send('#busy!', { local: false }); await sleep(120); }
+  }
+  $('btnSeqExample').onclick = () => {
+    $('seq').value = ['pose home', 'waitdone',
+                      '#m2:0!', 'wait 400',
+                      '#m1:45,2000!', 'wait 2100',
+                      '#m2:90,1200!', 'wait 1400',
+                      'pose pick', 'waitdone',
+                      '#j:4,150!', 'wait 500',
+                      'pose place', 'waitdone',
+                      '#j:4,30!', 'wait 400'].join('\n');
+  };
+  $('btnSeqRun').onclick = async () => {
+    if (seqRunning) return;
+    const lines = $('seq').value.split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('# '));
+    if (!lines.length) { log(t('log.seqEmpty'), 'err'); return; }
+    setPlay(false);
+    seqRunning = true; seqAbort = false;
+    $('btnSeqRun').disabled = true; $('btnSeqStop').disabled = false;
+    log(t('log.seqStart'), 'sys');
+    try {
+      do {
+        for (const line of lines) {
+          if (seqAbort) break;
+          let x;
+          if ((x = line.match(/^wait\s+(\d+)$/i))) await sleep(+x[1]);
+          else if (/^waitdone$/i.test(line)) await waitDone();
+          else if ((x = line.match(/^pose\s+(\S+)$/i))) {
+            const p = poses[x[1]];
+            if (!p) { log(t('log.poseMissing', { name: x[1] }), 'err'); seqAbort = true; break; }
+            p.forEach((a, i) => setSlider(i + 1, a));
+            await send(`#m:${p.join(',')}!`);
+          }
+          else if (line.startsWith('#')) { await send(line); await sleep(30); }
+          else { log(t('log.parseFail', { line }), 'err'); seqAbort = true; break; }
+        }
+      } while ($('seqLoop').checked && !seqAbort);
+    } finally {
+      seqRunning = false;
+      $('btnSeqRun').disabled = false; $('btnSeqStop').disabled = true;
+      log(seqAbort ? t('log.seqStopped') : t('log.seqDone'), 'sys');
+    }
+  };
+  $('btnSeqStop').onclick = () => { seqAbort = true; };
+
+  /* ===== 카메라 조작 ===== */
+  document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => { if (HAS3D) setCam(CAM[b.dataset.cam]); });
+  $('camZoom').oninput = e => { view.dist = clamp(12 / +e.target.value, 0.9, 80); };
+  const sceneBox = $('sceneBox');
+  sceneBox.addEventListener('wheel', e => { e.preventDefault(); view.dist *= Math.exp(e.deltaY * 0.0022); }, { passive: false });
+  sceneBox.addEventListener('contextmenu', e => e.preventDefault());
+  let drag = null;
+  sceneBox.addEventListener('pointerdown', e => {
+    drag = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, btn: e.button, pan: e.button === 2 || e.shiftKey };
+    sceneBox.classList.add('dragging'); sceneBox.setPointerCapture(e.pointerId);
+  });
+  sceneBox.addEventListener('pointermove', e => {
+    if (!drag || !HAS3D) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (drag.pan) {
+      const k = view.dist * 0.0016, sinT = Math.sin(view.theta), cosT = Math.cos(view.theta);
+      view.target.x += (-dx * sinT + dy * cosT * 0.6) * k;
+      view.target.z += ( dx * cosT + dy * sinT * 0.6) * k;
+    } else { view.theta -= dx * 0.006; view.phi -= dy * 0.005; }
+    drag.x = e.clientX; drag.y = e.clientY;
+  });
+  sceneBox.addEventListener('pointerup', e => {
+    if (drag && HAS3D && drag.btn === 0 && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 4) pickAt(e.clientX, e.clientY);
+    drag = null; sceneBox.classList.remove('dragging');
+  });
+  sceneBox.addEventListener('pointercancel', () => { drag = null; sceneBox.classList.remove('dragging'); });
+  sceneBox.addEventListener('dblclick', () => { if (HAS3D) setCam(CAM.all); });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('btnStop').click(); });
+  $('btnConnect').onclick = connect;
+  $('btnDisconnect').onclick = disconnect;
+  if ('serial' in navigator) navigator.serial.addEventListener('disconnect', () => { if (port) { log(t('log.detached'), 'err'); disconnect(); } });
+
+  resizeTl();
+  new ResizeObserver(resizeTl).observe(tlWrap);
+
+  if (HAS3D) {
+    buildScene();
+    view.target = new THREE.Vector3(CAM.all.t[0], CAM.all.t[1], CAM.all.t[2]);
+    resize(); updateCamera();
+    new ResizeObserver(resize).observe(cv.parentElement);
+    // 웹폰트가 늦게 오면 3D 라벨을 다시 그림
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(relabel3d);
+  } else {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#7d89a6;padding:24px;text-align:center;font-weight:800';
+    el.textContent = t('log.3dfail');
+    cv.parentElement.appendChild(el);
+    ['btnGrid', 'btnWire', 'btnAxes', 'btnShot'].forEach(id => { $(id).disabled = true; });
+  }
+  applyLang();
+  requestAnimationFrame(frame);
+  log(t('log.ready'), 'sys');
+  autoReconnect();
+})();
+</script>
+</body>
+</html>
