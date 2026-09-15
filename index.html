@@ -421,8 +421,8 @@ wait 1600
   const HAS3D = typeof THREE !== 'undefined';
   /* 배치 (TOP 뷰 기준): 벨트는 좌→우(+x), 로봇팔은 벨트 중앙 앞쪽(+z, 화면 아래),
      차단봉은 벨트 건너편(-z, 화면 위) 상류 쪽(왼쪽) */
-  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.6 };   // top = 벨트 면 높이
-  const BASE = { x: 0, z: 2.0, h: 0.54 };   // h = 받침 높이: 바닥판 윗면(h + 0.06)이 벨트 면(BELT.top)과 같아지게
+  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 1.1 };   // top = 벨트 면 높이
+  const BASE = { x: 0, z: 2.0, h: 1.04 };   // h = 받침 높이: 바닥판 윗면(h + 0.06)이 벨트 면(BELT.top)과 같아지게
   const L1 = 1.35, L2 = 1.05;
   const FLAG = { x: -1.5, z: -(BELT.w / 2 + 0.18), len: 1.18 };
   const CH_KEY = ['j1', 'j2', 'j3', 'j4'];
