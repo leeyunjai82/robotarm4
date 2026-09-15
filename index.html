@@ -506,9 +506,9 @@ wait 1600
       r.rotation.x = Math.PI / 2; r.position.set(x, T - rr, 0);
       conv.add(r); parts.rollers.push(r);
     });
-    // 구동 서보 (ch5) — 바닥에 놓인다
+    // 구동 서보 (ch5) — 끝 롤러 축에 붙어 있다
     const drv = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
-    drv.position.set(BELT.x0 - 0.05, 0.2, BELT.w / 2 + 0.2); conv.add(drv);
+    drv.position.set(BELT.x0, T - rr, (BELT.w + 0.22) / 2 + 0.13); conv.add(drv);   // 롤러 축 높이, 프레임 옆면에 밀착
 
     /* --- 차단봉 (ch6) : 벨트 건너편 수평 스윕, 0° 차단 / +90° 개방 --- */
     const servo = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
