@@ -165,14 +165,14 @@
     <div class="pan" style="flex:0 0 auto">
       <div class="ph"><i class="fa-solid fa-industry"></i><span data-i18n="conv.title">컨베이어 (ch5-6)</span></div>
       <div class="pb">
-        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="25" max="50" value="45">
-          <span class="rd"><input class="inp" id="rollerVal" type="number" min="25" max="50" value="45"><span class="sub" id="u5"></span></span></div>
+        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="15" max="40" value="30">
+          <span class="rd"><input class="inp" id="rollerVal" type="number" min="15" max="40" value="30"><span class="sub" id="u5"></span></span></div>
         <div class="row">
           <button class="db go grow" id="btnBeltFwd"><i class="fa-solid fa-arrow-right"></i><span data-i18n="conv.fwd">앞으로</span></button>
           <button class="db go grow" id="btnBeltBack"><i class="fa-solid fa-arrow-left"></i><span data-i18n="conv.back">뒤로</span></button>
           <button class="db" id="btnRollerStop"><i class="fa-solid fa-stop"></i><span data-i18n="conv.stop">멈춤</span></button>
         </div>
-        <div class="hint" data-i18n="conv.rollNote">벨트 빠르기는 25~50 사이만 돼요 (그 아래는 모터가 안 돌아요)</div>
+        <div class="hint" data-i18n="conv.rollNote">벨트 빠르기는 15~40 사이만 돼요 (그 아래는 모터가 안 돌아요)</div>
         <div class="sec2">
           <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
             <span class="rd"><input class="inp" id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
@@ -260,7 +260,7 @@ wait 1600
       'tl.add': '장면 추가', 'tl.del': '지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
       'row.cut': '꺼짐',
       'conv.title': '컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.fwd': '앞으로', 'conv.back': '뒤로', 'conv.stop': '멈춤',
-      'conv.flag': '차단봉', 'conv.flagNote': '0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)', 'conv.rollNote': '벨트 빠르기는 25~50 사이만 돼요 (그 아래는 모터가 안 돌아요)',
+      'conv.flag': '차단봉', 'conv.flagNote': '0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)', 'conv.rollNote': '벨트 빠르기는 15~40 사이만 돼요 (그 아래는 모터가 안 돌아요)',
       'seq.title': '순서대로 시키기', 'seq.example': '예제 넣기', 'seq.run': '실행', 'seq.stop': '멈춤', 'seq.loop': '반복',
       'term.title': '로봇과 대화하기', 'term.pos': '#pos 어디니?', 'term.clear': '지우기', 'term.send': '보내기',
       'lbl.arm': '로봇팔 ch1-4', 'lbl.belt': '벨트 ch5', 'lbl.flag': '차단봉 ch6',
@@ -302,7 +302,7 @@ wait 1600
       'tl.add': 'Add keyframe', 'tl.del': 'Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
       'row.cut': 'Off',
       'conv.title': 'Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.fwd': 'Forward', 'conv.back': 'Backward', 'conv.stop': 'Stop',
-      'conv.flag': 'Gate', 'conv.flagNote': '0 = block the belt · +90 = open (moves as soon as you release the slider)', 'conv.rollNote': 'Belt speed works only between 25 and 50 (the motor does not turn below that)',
+      'conv.flag': 'Gate', 'conv.flagNote': '0 = block the belt · +90 = open (moves as soon as you release the slider)', 'conv.rollNote': 'Belt speed works only between 15 and 40 (the motor does not turn below that)',
       'seq.title': 'Step Program', 'seq.example': 'Example', 'seq.run': 'Run', 'seq.stop': 'Stop', 'seq.loop': 'Loop',
       'term.title': 'Talk to Robot', 'term.pos': '#pos where?', 'term.clear': 'Clear', 'term.send': 'Send',
       'lbl.arm': 'ARM ch1-4', 'lbl.belt': 'BELT ch5', 'lbl.flag': 'GATE ch6',
@@ -1210,8 +1210,8 @@ wait 1600
     } catch (err) { log(t('log.poseErr', { msg: err.message }), 'err'); }
   });
 
-  // 컨베이어: 슬라이더 = 빠르기(25~50, 그 아래는 dead zone), 버튼 = 방향
-  const BELT_MIN = 25, BELT_MAX = 50;
+  // 컨베이어: 슬라이더 = 빠르기(15~40, 그 아래는 dead zone), 버튼 = 방향
+  const BELT_MIN = 15, BELT_MAX = 40;
   function beltGo(dir) {
     beltDir = dir;
     const v = clamp(Math.round(Math.abs(+$('rollerVal').value) || BELT_MIN), BELT_MIN, BELT_MAX);   // 서보 dead zone: 25 미만은 안 돎
