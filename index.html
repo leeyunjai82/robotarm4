@@ -475,16 +475,18 @@ wait 1600
     worldAxes = new THREE.AxesHelper(1.6); worldAxes.position.set(0, 0.02, 0); worldAxes.visible = false; scene.add(worldAxes);
 
     /* --- 컨베이어 --- */
+    // 벨트·차단봉·구동 서보를 한 그룹으로 묶고, 통째로 180° 돌린다 (모양은 그대로)
+    const conv = new THREE.Group(); conv.rotation.y = Math.PI; scene.add(conv); parts.conv = conv;
     const len = BELT.x1 - BELT.x0, cx = (BELT.x0 + BELT.x1) / 2;
     const frame = new THREE.Mesh(new THREE.BoxGeometry(len, 0.34, BELT.w + 0.22), new THREE.MeshLambertMaterial({ color: 0x1F5F7A }));
-    frame.position.set(cx, BELT.top - 0.22, 0); scene.add(frame);
+    frame.position.set(cx, BELT.top - 0.22, 0); conv.add(frame);
     [-1, 1].forEach(sz => {
       const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.07), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
-      rail.position.set(cx, BELT.top + 0.05, sz * (BELT.w / 2 + 0.06)); scene.add(rail);
+      rail.position.set(cx, BELT.top + 0.05, sz * (BELT.w / 2 + 0.06)); conv.add(rail);
     });
     [BELT.x0 + 0.3, BELT.x1 - 0.3].forEach(lx => [-1, 1].forEach(sz => {
       const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, BELT.top - 0.38, 0.12), new THREE.MeshLambertMaterial({ color: 0x12455C }));
-      leg.position.set(lx, (BELT.top - 0.38) / 2, sz * (BELT.w / 2 - 0.1)); scene.add(leg);
+      leg.position.set(lx, (BELT.top - 0.38) / 2, sz * (BELT.w / 2 - 0.1)); conv.add(leg);
     }));
     const tc = document.createElement('canvas'); tc.width = 64; tc.height = 64;
     const tg = tc.getContext('2d');
@@ -494,21 +496,21 @@ wait 1600
     beltTex.wrapS = beltTex.wrapT = THREE.RepeatWrapping;
     beltTex.repeat.set(len * 1.6, 1);
     const belt = new THREE.Mesh(new THREE.PlaneGeometry(len, BELT.w), new THREE.MeshLambertMaterial({ map: beltTex }));
-    belt.rotation.x = -Math.PI / 2; belt.position.set(cx, BELT.top, 0); scene.add(belt);
+    belt.rotation.x = -Math.PI / 2; belt.position.set(cx, BELT.top, 0); conv.add(belt);
     parts.rollers = [];
     [BELT.x0, BELT.x1].forEach(x => {
       const r = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
       r.rotation.x = Math.PI / 2; r.position.set(x, BELT.top - 0.14, 0);
       r.add(new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xFBF7EF })));
-      scene.add(r); parts.rollers.push(r);
+      conv.add(r); parts.rollers.push(r);
     });
     // 구동 서보 (ch5)
     const drv = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
-    drv.position.set(BELT.x0 - 0.05, BELT.top - 0.16, BELT.w / 2 + 0.2); scene.add(drv);
+    drv.position.set(BELT.x0 - 0.05, BELT.top - 0.16, BELT.w / 2 + 0.2); conv.add(drv);
 
     /* --- 차단봉 (ch6) : 벨트 건너편 수평 스윕, 0° 차단 / +90° 개방 --- */
     const servo = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
-    servo.position.set(FLAG.x, BELT.top - 0.02, FLAG.z - 0.1); scene.add(servo);
+    servo.position.set(FLAG.x, BELT.top - 0.02, FLAG.z - 0.1); conv.add(servo);
     parts.flag = new THREE.Group();
     parts.flag.position.set(FLAG.x, BELT.top + 0.16, FLAG.z);
     const horn = new THREE.Mesh(new THREE.BoxGeometry(FLAG.len, 0.05, 0.1), new THREE.MeshLambertMaterial({ color: 0xffffff }));
@@ -521,7 +523,7 @@ wait 1600
     const stripeTex = new THREE.CanvasTexture(sc); stripeTex.wrapS = THREE.RepeatWrapping; stripeTex.repeat.set(2, 1);
     const blade = new THREE.Mesh(new THREE.BoxGeometry(FLAG.len * 0.66, 0.26, 0.05), new THREE.MeshLambertMaterial({ map: stripeTex }));
     blade.position.set(FLAG.len * 0.66, 0.06, 0);
-    parts.flag.add(horn); parts.flag.add(blade); scene.add(parts.flag);
+    parts.flag.add(horn); parts.flag.add(blade); conv.add(parts.flag);
 
     /* --- 로봇팔 (하비서보 브래킷 구조) --- */
     const MAT = {
@@ -638,8 +640,8 @@ wait 1600
     });
 
     const l1s = label('lbl.arm', '#12455C'); l1s.position.set(BASE.x, 0.3, BASE.z + 1.0); scene.add(l1s);
-    const l2s = label('lbl.belt', '#2A2620'); l2s.position.set(BELT.x0 + 0.25, BELT.top + 0.55, 0); scene.add(l2s);
-    const l3s = label('lbl.flag', '#B4451C'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); scene.add(l3s);
+    const l2s = label('lbl.belt', '#2A2620'); l2s.position.set(BELT.x0 + 0.25, BELT.top + 0.55, 0); conv.add(l2s);
+    const l3s = label('lbl.flag', '#B4451C'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); conv.add(l3s);
   }
 
   const gripGapMm = v => 45 - (v / 180) * 30;      // 0 = 열림 45mm, 180 = 닫힘 15mm
@@ -650,7 +652,7 @@ wait 1600
     all:  { t: [0, 1.1, 0.8], d: 8.0, th: -Math.PI / 2, ph: 1.05 },   // 차단봉 쪽(-z) 정면에서 바라봄
     arm:  { t: [BASE.x, 1.2, BASE.z - 0.6], d: 4.8, th: 1.0, ph: 1.0 },
     belt: { t: [(BELT.x0 + BELT.x1) / 2, 1.0, 0], d: 6.4, th: 1.45, ph: 0.85 },
-    flag: { t: [FLAG.x, 1.05, FLAG.z + 0.3], d: 2.8, th: 1.1, ph: 0.95 },
+    flag: { t: [-FLAG.x, 1.05, -FLAG.z - 0.3], d: 2.8, th: 1.1, ph: 0.95 },   // 컨베이어 그룹이 180° 돌아 있으므로 부호 반전
     top:  { t: [0, 0.9, 0.6], d: 10.5, th: Math.PI / 2, ph: 0.12 }
   };
   const view = { target: null, dist: CAM.all.d, theta: CAM.all.th, phi: CAM.all.ph };
