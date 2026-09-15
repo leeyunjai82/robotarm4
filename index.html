@@ -421,8 +421,8 @@ wait 1600
   const HAS3D = typeof THREE !== 'undefined';
   /* 배치 (TOP 뷰 기준): 벨트는 좌→우(+x), 로봇팔은 벨트 중앙 앞쪽(+z, 화면 아래),
      차단봉은 벨트 건너편(-z, 화면 위) 상류 쪽(왼쪽) */
-  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.09 };  // top = 벨트 면 높이 = 로봇팔 바닥판 윗면(서보 혼 높이)
-  const BASE = { x: 0, z: 2.0 };
+  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.6 };   // top = 벨트 면 높이
+  const BASE = { x: 0, z: 2.0, h: 0.54 };   // h = 받침 높이: 바닥판 윗면(h + 0.06)이 벨트 면(BELT.top)과 같아지게
   const L1 = 1.35, L2 = 1.05;
   const FLAG = { x: -1.5, z: -(BELT.w / 2 + 0.18), len: 1.18 };
   const CH_KEY = ['j1', 'j2', 'j3', 'j4'];
@@ -571,7 +571,10 @@ wait 1600
     parts.armRoot = new THREE.Group(); parts.armRoot.position.set(BASE.x, 0, BASE.z);
     parts.armRoot.rotation.y = Math.PI / 2;   // ch1=90° 에서 팔 정면(로컬 +x)이 벨트(-z)를 향함
     scene.add(parts.armRoot);
-    parts.armProc = new THREE.Group(); parts.armRoot.add(parts.armProc);
+    // 받침: 로봇팔 전체를 올려 바닥판 윗면이 벨트 면과 같은 높이가 되게 한다
+    const riser = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.56, BASE.h, 28), MAT.dark);
+    riser.position.y = BASE.h / 2; parts.armRoot.add(riser);
+    parts.armProc = new THREE.Group(); parts.armProc.position.y = BASE.h; parts.armRoot.add(parts.armProc);
     const P = parts.armProc;
 
     const basePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.66, 0.06, 28), MAT.anod);
@@ -644,7 +647,7 @@ wait 1600
       const ax = new THREE.AxesHelper(0.55); ax.visible = false; g.add(ax); procAxes.push(ax);
     });
 
-    const l1s = label('lbl.arm', '#12455C'); l1s.position.set(BASE.x, 0.3, BASE.z + 1.0); scene.add(l1s);
+    const l1s = label('lbl.arm', '#12455C'); l1s.position.set(BASE.x, BASE.h + 0.3, BASE.z + 1.0); scene.add(l1s);
     const l2s = label('lbl.belt', '#2A2620'); l2s.position.set(BELT.x0 + 0.25, BELT.top + 0.55, 0); conv.add(l2s);
     const l3s = label('lbl.flag', '#B4451C'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); conv.add(l3s);
   }
@@ -655,7 +658,7 @@ wait 1600
   // 카메라는 +z(팔 쪽)에서 -z 방향을 봄 → 화면 오른쪽 = +x, 화면 위 = -z(차단봉 쪽)
   const CAM = {
     all:  { t: [0, 1.1, 0.8], d: 8.0, th: -Math.PI / 2, ph: 1.05 },   // 차단봉 쪽(-z) 정면에서 바라봄
-    arm:  { t: [BASE.x, 0.9, BASE.z - 0.6], d: 4.4, th: 1.0, ph: 1.0 },
+    arm:  { t: [BASE.x, 0.9 + BASE.h, BASE.z - 0.6], d: 4.6, th: 1.0, ph: 1.0 },
     belt: { t: [(BELT.x0 + BELT.x1) / 2, 1.0, 0], d: 6.4, th: 1.45, ph: 0.85 },
     flag: { t: [-FLAG.x, 1.05, -FLAG.z - 0.3], d: 2.8, th: 1.1, ph: 0.95 },   // 컨베이어 그룹이 180° 돌아 있으므로 부호 반전
     top:  { t: [0, 0.9, 0.6], d: 10.5, th: Math.PI / 2, ph: 0.12 }
