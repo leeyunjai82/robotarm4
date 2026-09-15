@@ -421,7 +421,7 @@ wait 1600
   const HAS3D = typeof THREE !== 'undefined';
   /* 배치 (TOP 뷰 기준): 벨트는 좌→우(+x), 로봇팔은 벨트 중앙 앞쪽(+z, 화면 아래),
      차단봉은 벨트 건너편(-z, 화면 위) 상류 쪽(왼쪽) */
-  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.62 };  // top = 벨트 면 높이 = 어깨 서보(ch2) 회전축 높이 (yaw 0.09 + link1 0.53)
+  const BELT = { x0: -2.4, x1: 2.4, w: 1.0, top: 0.09 };  // top = 벨트 면 높이 = 로봇팔 바닥판 윗면(서보 혼 높이)
   const BASE = { x: 0, z: 2.0 };
   const L1 = 1.35, L2 = 1.05;
   const FLAG = { x: -1.5, z: -(BELT.w / 2 + 0.18), len: 1.18 };
@@ -478,15 +478,17 @@ wait 1600
     // 벨트·차단봉·구동 서보를 한 그룹으로 묶고, 통째로 180° 돌린다 (모양은 그대로)
     const conv = new THREE.Group(); conv.rotation.y = Math.PI; scene.add(conv); parts.conv = conv;
     const len = BELT.x1 - BELT.x0, cx = (BELT.x0 + BELT.x1) / 2;
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(len, 0.34, BELT.w + 0.22), new THREE.MeshLambertMaterial({ color: 0x1F5F7A }));
-    frame.position.set(cx, BELT.top - 0.22, 0); conv.add(frame);
+    // 프레임·롤러 치수는 벨트 높이(BELT.top)에 맞춰 자동으로 정해진다: 프레임이 바닥에 놓이고 윗면이 벨트 면
+    const T = BELT.top, fr = Math.min(0.34, T), rr = Math.min(0.16, T / 2);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(len, fr, BELT.w + 0.22), new THREE.MeshLambertMaterial({ color: 0x1F5F7A }));
+    frame.position.set(cx, T - fr / 2, 0); conv.add(frame);
     [-1, 1].forEach(sz => {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.07), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
-      rail.position.set(cx, BELT.top + 0.05, sz * (BELT.w / 2 + 0.06)); conv.add(rail);
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.07), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
+      rail.position.set(cx, T + 0.03, sz * (BELT.w / 2 + 0.06)); conv.add(rail);
     });
-    [BELT.x0 + 0.3, BELT.x1 - 0.3].forEach(lx => [-1, 1].forEach(sz => {
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, BELT.top - 0.38, 0.12), new THREE.MeshLambertMaterial({ color: 0x12455C }));
-      leg.position.set(lx, (BELT.top - 0.38) / 2, sz * (BELT.w / 2 - 0.1)); conv.add(leg);
+    if (T - fr > 0.04) [BELT.x0 + 0.3, BELT.x1 - 0.3].forEach(lx => [-1, 1].forEach(sz => {   // 프레임 아래 공간이 있을 때만 다리
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, T - fr, 0.12), new THREE.MeshLambertMaterial({ color: 0x12455C }));
+      leg.position.set(lx, (T - fr) / 2, sz * (BELT.w / 2 - 0.1)); conv.add(leg);
     }));
     const tc = document.createElement('canvas'); tc.width = 64; tc.height = 64;
     const tg = tc.getContext('2d');
@@ -496,21 +498,21 @@ wait 1600
     beltTex.wrapS = beltTex.wrapT = THREE.RepeatWrapping;
     beltTex.repeat.set(len * 1.6, 1);
     const belt = new THREE.Mesh(new THREE.PlaneGeometry(len, BELT.w), new THREE.MeshLambertMaterial({ map: beltTex }));
-    belt.rotation.x = -Math.PI / 2; belt.position.set(cx, BELT.top, 0); conv.add(belt);
+    belt.rotation.x = -Math.PI / 2; belt.position.set(cx, T + 0.002, 0); conv.add(belt);
     parts.rollers = [];
     [BELT.x0, BELT.x1].forEach(x => {
-      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
-      r.rotation.x = Math.PI / 2; r.position.set(x, BELT.top - 0.14, 0);
-      r.add(new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xFBF7EF })));
+      const r = new THREE.Mesh(new THREE.CylinderGeometry(rr, rr, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
+      r.rotation.x = Math.PI / 2; r.position.set(x, T - rr, 0);
+      r.add(new THREE.Mesh(new THREE.BoxGeometry(rr * 2 + 0.01, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xFBF7EF })));
       conv.add(r); parts.rollers.push(r);
     });
-    // 구동 서보 (ch5)
+    // 구동 서보 (ch5) — 바닥에 놓인다
     const drv = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
-    drv.position.set(BELT.x0 - 0.05, BELT.top - 0.16, BELT.w / 2 + 0.2); conv.add(drv);
+    drv.position.set(BELT.x0 - 0.05, 0.2, BELT.w / 2 + 0.2); conv.add(drv);
 
     /* --- 차단봉 (ch6) : 벨트 건너편 수평 스윕, 0° 차단 / +90° 개방 --- */
     const servo = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
-    servo.position.set(FLAG.x, BELT.top - 0.02, FLAG.z - 0.1); conv.add(servo);
+    servo.position.set(FLAG.x, Math.max(0.15, BELT.top - 0.02), FLAG.z - 0.1); conv.add(servo);   // 바닥 아래로 내려가지 않게
     parts.flag = new THREE.Group();
     parts.flag.position.set(FLAG.x, BELT.top + 0.16, FLAG.z);
     const horn = new THREE.Mesh(new THREE.BoxGeometry(FLAG.len, 0.05, 0.1), new THREE.MeshLambertMaterial({ color: 0xffffff }));
