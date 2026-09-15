@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Arm Lab — 로봇팔 조종실</title>
+<title>Factory Lab — 로봇 공장 조종실</title>
 <meta name="description" content="로봇팔과 컨베이어를 브라우저에서 직접 움직여 보는 수업용 웹앱">
 <link rel="icon" type="image/png" href="assets/img/favicon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -16,7 +16,7 @@
 <body>
 
 <header>
-  <h1><img src="assets/img/pibo-logo.png" alt=""><span class="brand-txt">Arm Lab</span></h1>
+  <h1><img src="assets/img/pibo-logo.png" alt=""><span class="brand-txt">Factory Lab</span></h1>
   <span class="badge" id="lampLink"><i class="dot"></i><span id="lampLinkTxt">로봇 연결 안 됨</span></span>
   <span class="badge" id="lampBusy"><i class="dot"></i><span id="lampBusyTxt">쉬는 중</span></span>
   <span class="sp"></span>
@@ -235,7 +235,7 @@ wait 1600
   /* ===================== 한/영 ===================== */
   const I18N = {
     ko: {
-      'app.title': 'Arm Lab — 로봇팔 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
+      'app.title': 'Factory Lab — 로봇 공장 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
       'hdr.noboard': '로봇 연결 안 됨', 'hdr.idle': '쉬는 중', 'hdr.working': '일하는 중', 'hdr.released': '힘 빼기 상태', 'hdr.playing': '동작 재생 중',
       'hdr.baud': '통신속도', 'hdr.autore': '자동 다시연결', 'hdr.connect': '로봇 연결', 'hdr.disconnect': '연결 끊기', 'hdr.stop': '멈춰! (ESC)',
       'hdr.lang': 'English',
@@ -277,7 +277,7 @@ wait 1600
       'log.lang': '언어: 한국어'
     },
     en: {
-      'app.title': 'Arm Lab — Robot Arm', 'app.sub': 'Arm 4ch + Conveyor 2ch',
+      'app.title': 'Factory Lab — Robot Factory', 'app.sub': 'Arm 4ch + Conveyor 2ch',
       'hdr.noboard': 'No robot', 'hdr.idle': 'Resting', 'hdr.working': 'Working', 'hdr.released': 'Relaxed (torque off)', 'hdr.playing': 'Playing motion',
       'hdr.baud': 'Baud', 'hdr.autore': 'Auto reconnect', 'hdr.connect': 'Connect', 'hdr.disconnect': 'Disconnect', 'hdr.stop': 'STOP (ESC)',
       'hdr.lang': '한국어',

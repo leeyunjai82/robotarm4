@@ -1,6 +1,6 @@
 {
-  "name": "Arm Lab",
-  "short_name": "Arm Lab",
+  "name": "Factory Lab",
+  "short_name": "Factory Lab",
   "description": "로봇팔과 컨베이어를 브라우저에서 직접 움직여 보는 수업용 웹앱",
   "start_url": "./index.html",
   "scope": "./",
