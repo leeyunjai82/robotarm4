@@ -147,7 +147,7 @@
   .k.leaf { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 3px 0 #22955a; }
   .k.leaf:hover:not(:disabled) { color: #fff; }
   .k.grn.on { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 2px 0 #22955a; }
-  .k.warn { border-color: #f6c1cf; color: var(--red); }
+  .k.danger { border-color: #f6c1cf; color: var(--red); }
   .ln { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; color: var(--muted); font-size: 12px; font-weight: 700; }
   .ln input[type=number], .ln input[type=text], .ln select, .tlbar input[type=number], .tlbar select, input.num {
     background: var(--panel2); border: 2px solid var(--border); border-radius: 8px; color: var(--ink);
@@ -158,11 +158,6 @@
   .note { margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4; font-weight: 700; }
   .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 4px; }
   .chips .k { background: var(--yellow-l); border-color: #f4dc9a; }
-  details.teacher { border: 2px dashed var(--border); border-radius: 10px; padding: 4px 8px; }
-  details.teacher summary { cursor: pointer; font-size: 12px; color: var(--muted); font-weight: 800; list-style: none; }
-  details.teacher summary::before { content: '▸ '; }
-  details.teacher[open] summary::before { content: '▾ '; }
-  details.teacher > div { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
 
   /* 뷰 */
   .view {
@@ -280,8 +275,6 @@
           <button class="k" id="btnReset" data-i18n="arm.reset" data-i18n-title="arm.resetTitle">처음 자세</button>
         </div>
         <div class="btns">
-          <button class="k" id="btnGripOpen" data-i18n="arm.gripOpen">✋ 집게 열기</button>
-          <button class="k" id="btnGripClose" data-i18n="arm.gripClose">✊ 집게 닫기</button>
           <button class="k" id="btnOff" data-i18n="arm.off">💤 힘 빼기</button>
           <button class="k" id="btnOn" data-i18n="arm.on">💪 힘 주기</button>
         </div>
@@ -306,17 +299,13 @@
           <button class="k" id="btnPoseFileLoad" data-i18n="pose.fileLoad">불러오기</button>
           <input type="file" id="poseFileIn" accept=".json">
         </div>
-        <details class="teacher">
-          <summary data-i18n="teacher.title">⚙️ 선생님 도구</summary>
-          <div>
-            <div class="btns">
-              <button class="k grn" id="btnCalib" data-i18n="cal.btn">영점 맞추기</button>
-              <button class="k warn" id="btnCalibReset" hidden data-i18n="cal.reset">보정값 지우기</button>
-              <span class="note" id="calibTxt" style="margin-left:auto"></span>
-            </div>
-            <p class="note" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
-          </div>
-        </details>
+        <div class="sep"></div>
+        <div class="btns">
+          <button class="k grn" id="btnCalib" data-i18n="cal.btn">영점 맞추기</button>
+          <button class="k danger" id="btnCalibReset" hidden data-i18n="cal.reset">보정값 지우기</button>
+          <span class="note" id="calibTxt" style="margin-left:auto"></span>
+        </div>
+        <p class="note" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
       </div>
     </section>
   </div>
@@ -377,32 +366,17 @@
     <section class="box conv" style="flex:0 0 auto">
       <h2 data-i18n="conv.title">🏭 컨베이어 (ch5-6)</h2>
       <div class="inner">
-        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="-90" max="90" value="0">
-          <span class="rd"><input id="rollerVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u5"></span></span></div>
+        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="0" max="90" value="45">
+          <span class="rd"><input id="rollerVal" type="number" min="0" max="90" value="45"><span class="sub" id="u5"></span></span></div>
         <div class="btns">
-          <button class="k big grow" id="btnRollerRun" data-i18n="conv.run">▶ 벨트 돌리기</button>
-          <button class="k" id="btnRollerStop" data-i18n="conv.stop">멈춤</button>
-          <button class="k" id="btnRollerRev" data-i18n="conv.rev">거꾸로</button>
-          <input type="number" class="num" id="rollerMs" min="50" max="60000" step="50" value="1000" style="width:64px">
-          <button class="k" id="btnRollerTimed" data-i18n="conv.timed" data-i18n-title="conv.timedTitle">⏱ 잠깐만</button>
+          <button class="k big grow" id="btnBeltFwd" data-i18n="conv.fwd">▶ 앞으로</button>
+          <button class="k big grow" id="btnBeltBack" data-i18n="conv.back">◀ 뒤로</button>
+          <button class="k" id="btnRollerStop" data-i18n="conv.stop">■ 멈춤</button>
         </div>
+        <div class="sep"></div>
         <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
           <span class="rd"><input id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
-        <div class="btns">
-          <button class="k" id="btnFlagL">-90</button>
-          <button class="k" id="btnFlagC" data-i18n="flag.c">🚧 닫기 (0)</button>
-          <button class="k leaf" id="btnFlagR" data-i18n="flag.r">🟢 열기 (+90)</button>
-          <button class="k" id="btnFlagMove" data-i18n="flag.move">가기</button>
-          <input type="number" class="num" id="flagMs" min="100" max="10000" step="50" value="1200" style="width:64px">
-          <button class="k" id="btnFlagFlip" data-i18n="flag.flip" data-i18n-title="flag.flipTitle">⏱ 열었다 닫기</button>
-        </div>
-        <div class="ln">
-          <span data-i18n="raw.label">#raw 펄스 직접</span>
-          <select id="rawCh"><option>0</option><option>7</option><option>8</option><option>9</option></select>
-          <input type="number" id="rawUs" min="500" max="2500" step="10" value="1500">us
-          <button class="k" id="btnRaw" data-i18n="raw.out">보내기</button>
-          <span style="margin-left:auto" data-i18n="raw.note">벨트 0 = 펄스 끔</span>
-        </div>
+        <p class="note" data-i18n="conv.flagNote">0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)</p>
       </div>
     </section>
 
@@ -453,6 +427,7 @@ wait 1600
 
   let port = null, writer = null, reader = null, rxLine = '';
   let seqRunning = false, seqAbort = false, busy = false;
+  let beltDir = 0;             // 벨트 방향 (+1 앞 / -1 뒤 / 0 정지)
 
   /* ===================== 한/영 ===================== */
   const I18N = {
@@ -466,11 +441,11 @@ wait 1600
       'j1': '회전', 'j2': '어깨', 'j3': '팔꿈치', 'j4': '집게',
       'arm.note': '−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)',
       'arm.move': '🚀 이 자세로 가기', 'arm.home': '🏠 집으로', 'arm.reset': '처음 자세', 'arm.resetTitle': 'ch1-3=90, 집게=0',
-      'arm.gripOpen': '✋ 집게 열기', 'arm.gripClose': '✊ 집게 닫기', 'arm.off': '💤 힘 빼기', 'arm.on': '💪 힘 주기',
+      'arm.off': '💤 힘 빼기', 'arm.on': '💪 힘 주기',
       'pose.title': '⭐ 자세 저장', 'pose.ph': '자세 이름', 'pose.save': '지금 자세 저장',
       'pose.note': 'Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요',
       'pose.fileSave': 'pose.json 저장', 'pose.fileLoad': '불러오기', 'pose.del': '(Shift+클릭: 지우기)',
-      'teacher.title': '⚙️ 선생님 도구', 'cal.btn': '영점 맞추기', 'cal.reset': '보정값 지우기', 'cal.txt': '보정',
+      'cal.btn': '영점 맞추기', 'cal.reset': '보정값 지우기', 'cal.txt': '보정',
       'cal.help': '영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.',
       'spd.label': '🐢🐇 속도', 'spd.unit': '도/초', 'spd.send': '적용', 'spd.ease': '부드럽게',
       'view.title': '👀 3D 공장 보기', 'view.echo': '명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)',
@@ -480,10 +455,8 @@ wait 1600
       'tl.title': '🎬 동작 타임라인 (ch1-4)', 'tl.kf': '장면 {n}개', 'tl.toStart': '처음으로', 'tl.play': '재생 / 잠깐 멈춤', 'tl.stop': '정지',
       'tl.add': '+ 장면 추가', 'tl.del': '✕ 지우기', 'tl.len': '길이', 'tl.speed': '빠르기', 'tl.loop': '반복', 'tl.save': 'motion.txt 저장', 'tl.load': '불러오기',
       'row.cut': '꺼짐',
-      'conv.title': '🏭 컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.run': '▶ 벨트 돌리기', 'conv.stop': '멈춤', 'conv.rev': '거꾸로',
-      'conv.timed': '⏱ 잠깐만', 'conv.timedTitle': '옆에 적은 ms 동안만 돌아요',
-      'conv.flag': '차단봉', 'flag.c': '🚧 닫기 (0)', 'flag.r': '🟢 열기 (+90)', 'flag.move': '가기', 'flag.flip': '⏱ 열었다 닫기', 'flag.flipTitle': '옆에 적은 ms 뒤에 다시 닫혀요',
-      'raw.label': '#raw 펄스 직접', 'raw.out': '보내기', 'raw.note': '벨트 0 = 펄스 끔',
+      'conv.title': '🏭 컨베이어 (ch5-6)', 'conv.roll': '벨트', 'conv.fwd': '▶ 앞으로', 'conv.back': '◀ 뒤로', 'conv.stop': '■ 멈춤',
+      'conv.flag': '차단봉', 'conv.flagNote': '0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)',
       'seq.title': '📝 순서대로 시키기', 'seq.example': '예제 넣기', 'seq.run': '▶ 실행', 'seq.stop': '■ 멈춤', 'seq.loop': '반복',
       'term.title': '💬 로봇과 대화하기', 'term.pos': '#pos 어디니?', 'term.clear': '지우기', 'term.send': '보내기',
       'lbl.arm': '로봇팔 ch1-4', 'lbl.belt': '벨트 ch5', 'lbl.flag': '차단봉 ch6',
@@ -510,11 +483,11 @@ wait 1600
       'j1': 'Turn', 'j2': 'Shoulder', 'j3': 'Elbow', 'j4': 'Gripper',
       'arm.note': '−/+ moves 1°, hold to keep going · Gripper 0=wide open(45mm) 180=closed(15mm)',
       'arm.move': '🚀 Go to this pose', 'arm.home': '🏠 Home', 'arm.reset': 'Start pose', 'arm.resetTitle': 'ch1-3=90, gripper=0',
-      'arm.gripOpen': '✋ Open gripper', 'arm.gripClose': '✊ Close gripper', 'arm.off': '💤 Relax', 'arm.on': '💪 Hold',
+      'arm.off': '💤 Relax', 'arm.on': '💪 Hold',
       'pose.title': '⭐ Saved poses', 'pose.ph': 'pose name', 'pose.save': 'Save this pose',
       'pose.note': 'Shift+click = delete · call it in the step program with "pose name"',
       'pose.fileSave': 'Save pose.json', 'pose.fileLoad': 'Load', 'pose.del': '(Shift+click: delete)',
-      'teacher.title': '⚙️ Teacher tools', 'cal.btn': 'Zero calibration', 'cal.reset': 'Clear offsets', 'cal.txt': 'Offset',
+      'cal.btn': 'Zero calibration', 'cal.reset': 'Clear offsets', 'cal.txt': 'Offset',
       'cal.help': 'Zero mode: −/+ changes the ch1-3 offset by 1° (applied only to what is sent to the real robot, saved in the browser). Adjust until the robot stands straight.',
       'spd.label': '🐢🐇 Speed', 'spd.unit': 'deg/s', 'spd.send': 'Apply', 'spd.ease': 'Smooth',
       'view.title': '👀 3D Factory View', 'view.echo': 'Shows what you commanded (not the real position)',
@@ -524,10 +497,8 @@ wait 1600
       'tl.title': '🎬 Motion Timeline (ch1-4)', 'tl.kf': '{n} keyframes', 'tl.toStart': 'To start', 'tl.play': 'Play / pause', 'tl.stop': 'Stop',
       'tl.add': '+ Add keyframe', 'tl.del': '✕ Delete', 'tl.len': 'Length', 'tl.speed': 'Speed', 'tl.loop': 'Loop', 'tl.save': 'Save motion.txt', 'tl.load': 'Load',
       'row.cut': 'Off',
-      'conv.title': '🏭 Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.run': '▶ Run belt', 'conv.stop': 'Stop', 'conv.rev': 'Reverse',
-      'conv.timed': '⏱ For a while', 'conv.timedTitle': 'Runs only for the ms typed next to it',
-      'conv.flag': 'Gate', 'flag.c': '🚧 Close (0)', 'flag.r': '🟢 Open (+90)', 'flag.move': 'Go', 'flag.flip': '⏱ Open & close', 'flag.flipTitle': 'Closes again after the ms typed next to it',
-      'raw.label': '#raw pulse', 'raw.out': 'Send', 'raw.note': 'Belt 0 = pulse off',
+      'conv.title': '🏭 Conveyor (ch5-6)', 'conv.roll': 'Belt', 'conv.fwd': '▶ Forward', 'conv.back': '◀ Backward', 'conv.stop': '■ Stop',
+      'conv.flag': 'Gate', 'conv.flagNote': '0 = block the belt · +90 = open (moves as soon as you release the slider)',
       'seq.title': '📝 Step Program', 'seq.example': 'Example', 'seq.run': '▶ Run', 'seq.stop': '■ Stop', 'seq.loop': 'Loop',
       'term.title': '💬 Talk to Robot', 'term.pos': '#pos where?', 'term.clear': 'Clear', 'term.send': 'Send',
       'lbl.arm': 'ARM ch1-4', 'lbl.belt': 'BELT ch5', 'lbl.flag': 'GATE ch6',
@@ -638,7 +609,7 @@ wait 1600
       const r = sim.easing ? tt * tt * (3 - 2 * tt) : tt;
       j.cur = j.from + (j.to - j.from) * r;
     }
-    if (sim.rollerUntil && now >= sim.rollerUntil) { sim.rollerUntil = 0; sim.roller = 0; $('roller').value = $('rollerVal').value = 0; }
+    if (sim.rollerUntil && now >= sim.rollerUntil) { sim.rollerUntil = 0; sim.roller = 0; beltDir = 0; }
     if (sim.flagReturnAt && now >= sim.flagReturnAt) { sim.flagReturnAt = 0; simMove(4, 90); $('flag').value = $('flagVal').value = 0; }
   }
 
@@ -1157,7 +1128,7 @@ wait 1600
       else if (calibMode) { const o = calOf(i); s = `(${o >= 0 ? '+' : ''}${o}) ` + s; }
       $('u' + i).textContent = s;
     }
-    $('u5').textContent = +$('rollerVal').value ? angToUs(90 + +$('rollerVal').value) + 'µs' : t('row.cut');
+    $('u5').textContent = sim.roller ? angToUs(90 + sim.roller) + 'µs' : t('row.cut');
     $('u6').textContent = angToUs(+$('flagVal').value + 90) + 'µs';
     const b = simBusy() || sim.roller !== 0 || seqRunning || tl.playing;
     $('lampBusy').className = b ? 'busy' : '';
@@ -1248,7 +1219,7 @@ wait 1600
       const f = +mm[2];
       sim.joints[4].cur = f + 90; sim.joints[4].to = f + 90; sim.joints[4].dur = 0;
       $('flag').value = $('flagVal').value = f;
-      sim.roller = +mm[3]; $('roller').value = $('rollerVal').value = mm[3];
+      sim.roller = +mm[3]; beltDir = Math.sign(sim.roller); if (sim.roller) $('roller').value = $('rollerVal').value = Math.abs(sim.roller);
     }
     if (/^\d$/.test(line)) busy = line === '1';
   }
@@ -1259,7 +1230,7 @@ wait 1600
     if ((x = cmd.match(/^#m:(-?\d+),(-?\d+),(-?\d+),(-?\d+)/))) { for (let i = 0; i < 4; i++) simMove(i, +x[i + 1]); }
     else if ((x = cmd.match(/^#j:(\d+),(-?\d+)/))) simMove(+x[1] - 1, +x[2]);
     else if ((x = cmd.match(/^#m1:(-?\d+)(?:,(\d+))?/))) {
-      sim.roller = clamp(+x[1], -90, 90);
+      sim.roller = clamp(+x[1], -90, 90); beltDir = Math.sign(sim.roller);
       sim.rollerUntil = (x[2] && sim.roller) ? performance.now() + +x[2] : 0;
     }
     else if ((x = cmd.match(/^#m2:(-?\d+)(?:,(\d+))?/))) {
@@ -1268,9 +1239,9 @@ wait 1600
     }
     else if ((x = cmd.match(/^#s:(\d+),([\d.]+)/))) { const j = sim.joints[+x[1] - 1]; if (j) j.dps = +x[2]; }
     else if ((x = cmd.match(/^#e:(\d)/))) sim.easing = x[1] === '1';
-    else if (/^#home/.test(cmd)) { for (let i = 0; i < 5; i++) simMove(i, 90); sim.roller = 0; sim.rollerUntil = 0; }
-    else if (/^#stop/.test(cmd)) { simStop(); sim.roller = 0; sim.rollerUntil = 0; sim.flagReturnAt = 0; }
-    else if (/^#off/.test(cmd)) { simStop(); sim.roller = 0; sim.released = true; }
+    else if (/^#home/.test(cmd)) { for (let i = 0; i < 5; i++) simMove(i, 90); sim.roller = 0; sim.rollerUntil = 0; beltDir = 0; }
+    else if (/^#stop/.test(cmd)) { simStop(); sim.roller = 0; sim.rollerUntil = 0; sim.flagReturnAt = 0; beltDir = 0; }
+    else if (/^#off/.test(cmd)) { simStop(); sim.roller = 0; beltDir = 0; sim.released = true; }
     else if (/^#on/.test(cmd)) sim.released = false;
     else if ((x = cmd.match(/^#raw:(\d+),(\d+)/))) {
       const ch = +x[1], ang = clamp(Math.round((+x[2] - 544) / (2400 - 544) * 180), 0, 180);
@@ -1370,8 +1341,6 @@ wait 1600
     [90, 90, 90, 0].forEach((v, i) => { setSlider(i + 1, v); simMove(i, v); });
     if ($('liveArm').checked) sendArmNow(true);
   };
-  $('btnGripOpen').onclick  = () => { setSlider(4, 30);  send('#j:4,30!'); };
-  $('btnGripClose').onclick = () => { setSlider(4, 150); send('#j:4,150!'); };
   $('btnSpeed').onclick = () => send(`#s:${$('spdJoint').value},${$('spdVal').value}!`);
   $('easing').onchange  = e => send(`#e:${e.target.checked ? 1 : 0}!`);
   $('btnOff').onclick = () => { setPlay(false); send('#off!'); };
@@ -1426,27 +1395,25 @@ wait 1600
     } catch (err) { log(t('log.poseErr', { msg: err.message }), 'err'); }
   });
 
-  // 컨베이어
-  $('roller').addEventListener('input', e => { $('rollerVal').value = e.target.value; sim.roller = +e.target.value; });
-  $('roller').addEventListener('change', e => send(`#m1:${e.target.value}!`));
-  $('rollerVal').addEventListener('change', e => { $('roller').value = e.target.value; send(`#m1:${e.target.value}!`); });
-  $('btnRollerRun').onclick   = () => send(`#m1:${$('rollerVal').value}!`);
-  $('btnRollerStop').onclick  = () => { $('roller').value = $('rollerVal').value = 0; send('#m1:0!'); };
-  $('btnRollerRev').onclick   = () => { const v = -+$('rollerVal').value; $('roller').value = $('rollerVal').value = v; send(`#m1:${v}!`); };
-  $('btnRollerTimed').onclick = () => send(`#m1:${$('rollerVal').value},${$('rollerMs').value}!`);
+  // 컨베이어: 슬라이더 = 빠르기(0~90), 버튼 = 방향
+  function beltGo(dir) {
+    beltDir = dir;
+    const v = clamp(Math.round(Math.abs(+$('rollerVal').value) || 0), 0, 90);
+    $('roller').value = $('rollerVal').value = v;
+    send(`#m1:${dir * v}!`);
+  }
+  $('roller').addEventListener('input', e => { $('rollerVal').value = e.target.value; if (beltDir) sim.roller = beltDir * +e.target.value; });
+  $('roller').addEventListener('change', () => { if (beltDir) beltGo(beltDir); });
+  $('rollerVal').addEventListener('change', e => { $('roller').value = e.target.value; if (beltDir) beltGo(beltDir); });
+  $('btnBeltFwd').onclick  = () => beltGo(1);
+  $('btnBeltBack').onclick = () => beltGo(-1);
+  $('btnRollerStop').onclick = () => { beltDir = 0; send('#m1:0!'); };
 
   $('flag').addEventListener('input', e => { $('flagVal').value = e.target.value; simMove(4, +e.target.value + 90); });
   $('flag').addEventListener('change', e => send(`#m2:${e.target.value}!`));
   $('flagVal').addEventListener('change', e => { $('flag').value = e.target.value; send(`#m2:${e.target.value}!`); });
-  const flagTo = v => { $('flag').value = $('flagVal').value = v; send(`#m2:${v}!`); };
-  $('btnFlagL').onclick = () => flagTo(-90);
-  $('btnFlagC').onclick = () => flagTo(0);
-  $('btnFlagR').onclick = () => flagTo(90);
-  $('btnFlagMove').onclick = () => send(`#m2:${$('flagVal').value}!`);
-  $('btnFlagFlip').onclick = () => send(`#m2:${$('flagVal').value || 90},${$('flagMs').value}!`);
-  $('btnRaw').onclick = () => send(`#raw:${$('rawCh').value},${$('rawUs').value}!`);
 
-  $('btnStop').onclick = () => { seqAbort = true; setPlay(false); send('#stop!'); $('roller').value = $('rollerVal').value = 0; };
+  $('btnStop').onclick = () => { seqAbort = true; setPlay(false); send('#stop!'); beltDir = 0; };
   $('btnPos').onclick = () => send('#pos!', { local: false });
   $('btnSend').onclick = () => { const c = $('cmd').value.trim(); if (c) { send(c); $('cmd').value = ''; } };
   $('cmd').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnSend').click(); });
