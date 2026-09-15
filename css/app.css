@@ -1,0 +1,103 @@
+/* Arm Lab 전용 스타일 — 공통 규격은 css/maker-ui.css (Sense Lab · 파이보 랩과 동일) */
+/* 여기에는 이 서비스에만 있는 것(축 슬라이더 줄, 3D 뷰, 타임라인, 터미널)만 둔다.
+   색은 maker-ui.css 토큰만 쓴다. 새 색 금지. */
+
+[hidden]{display:none !important}
+.db{white-space:nowrap}
+
+/* ── 헤더 보조 ── */
+header .sp{flex:1}
+header .fld{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);font-weight:600;white-space:nowrap}
+header .fld select.inp{flex:0 0 auto;width:auto;padding:5px 8px}
+header .fld input[type=checkbox]{accent-color:var(--acc);width:14px;height:14px;margin:0}
+header .db{white-space:nowrap}
+header .badge i.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line);margin-right:5px;vertical-align:1px}
+header .badge.ok i.dot{background:var(--ok)}
+header .badge.busy{color:var(--acc-ink);background:var(--acc-soft);border-color:#C5D3E0}
+header .badge.busy i.dot{background:var(--acc)}
+.warnbar{display:none;margin:8px 8px 0;padding:7px 12px;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel2);color:var(--warn);font-size:12px;font-weight:600;flex-shrink:0}
+
+/* ── 본문 3단 ── */
+.mk-main{padding-top:12px}
+.pan-side{width:300px}
+.pan-out{width:340px}
+.pan > .pb{display:flex;flex-direction:column;gap:9px;min-height:0}
+.pan > .ph .sp{flex:1}
+.pan > .ph .meta{font-size:11px;color:var(--ink3);font-weight:600;white-space:nowrap}
+.pan > .ph .opt{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink2)}
+.pan > .ph .opt input{accent-color:var(--acc);margin:0}
+.pan > .ph .db{padding:4px 9px;font-size:11.5px}
+.pan > .ph .db.quiet{border-color:transparent;color:var(--ink3)}
+.pan > .ph .db.quiet:hover{border-color:var(--line);color:var(--acc-ink);background:transparent}
+.row{align-items:center;flex-wrap:wrap}
+.row .grow{flex:1;justify-content:center}
+.hint{margin-top:0}
+.sec2{margin-top:6px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.sec2 .st{margin-bottom:0;display:flex;align-items:center;gap:6px}
+.inp.num{flex:0 0 auto;width:66px;font-variant-numeric:tabular-nums;text-align:right}
+.unit{font-size:11.5px;color:var(--ink3);font-weight:600}
+
+/* ── 축 슬라이더 줄 ── */
+.strip{display:grid;grid-template-columns:58px 1fr 84px;align-items:center;gap:8px;
+  padding:4px 6px;border-radius:8px;border:1px solid transparent}
+.strip.arm{grid-template-columns:58px 1fr 26px 74px 26px;gap:6px}
+.strip.hl{border-color:var(--acc);background:var(--acc-soft)}
+.strip label{font-size:12.5px;font-weight:700;color:var(--ink)}
+.rd{text-align:right;line-height:1.1}
+.rd input{width:100%;text-align:right;padding:4px 7px;font-variant-numeric:tabular-nums;font-size:12.5px}
+.rd input::-webkit-outer-spin-button,.rd input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.rd .sub{display:block;font-size:10px;color:var(--ink3);white-space:nowrap;font-family:var(--mono);margin-top:2px}
+.nb{width:26px;height:28px;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  color:var(--ink2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:11px;user-select:none;touch-action:none;font-family:inherit}
+.nb:hover{border-color:var(--acc);color:var(--acc-ink);background:var(--acc-soft)}
+body.calib .strip.arm:not([data-ch="4"]) .rd input{color:var(--ok);border-color:#B9D3C1}
+body.calib .strip.arm:not([data-ch="4"]) .nb{color:var(--ok);border-color:#B9D3C1}
+body.calib .strip.arm:not([data-ch="4"]) .sub{color:var(--ok)}
+
+/* 자세 칩 */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips .db{font-family:var(--mono);font-weight:600;font-size:12px;padding:5px 10px}
+
+/* ── 3D 뷰 ── */
+.pan-wide > .pb{padding:0}
+.view{flex:1 1 auto;min-height:160px;position:relative;cursor:grab;background:#F3EFE6;border-bottom:1px solid var(--line-soft)}
+.view.dragging{cursor:grabbing}
+.view canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:10px;bottom:8px;font-size:11px;color:var(--ink3);pointer-events:none;
+  background:rgba(255,255,255,.88);border:1px solid var(--line-soft);padding:3px 9px;border-radius:999px;font-weight:600;
+  font-variant-numeric:tabular-nums}
+.tip{position:absolute;display:none;pointer-events:none;z-index:5;background:#233642;color:#fff;
+  padding:4px 10px;font-size:11.5px;border-radius:6px;font-weight:600}
+.toolbar{display:flex;align-items:center;gap:6px;padding:9px 12px;flex-wrap:wrap;font-size:12px;color:var(--ink2);flex-shrink:0}
+.toolbar .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
+.toolbar .seg button{border:0;background:transparent;padding:5px 11px;font-size:12px;font-weight:700;
+  color:var(--ink2);cursor:pointer;font-family:inherit;white-space:nowrap}
+.toolbar .seg button+button{border-left:1.5px solid var(--line)}
+.toolbar .seg button.on{background:var(--acc-soft);color:var(--acc-ink)}
+.toolbar .vsep{width:1px;height:18px;background:var(--line-soft);margin:0 4px}
+.toolbar input[type=range]{width:90px}
+.toolbar .zoom{display:inline-flex;align-items:center;gap:7px;margin-left:auto;color:var(--ink3)}
+.toolbar .zoom .num{min-width:34px;font-size:11.5px;font-weight:600;color:var(--ink2)}
+.tltime{min-width:54px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink);font-size:12px}
+.tlwrap{height:64px;margin:0 12px 12px;border:1px solid var(--line-soft);border-radius:8px;position:relative;flex-shrink:0;overflow:hidden;background:var(--panel2)}
+.tlwrap canvas{display:block;width:100%;height:100%;cursor:crosshair}
+.pan-wide.tlpan{flex:0 0 auto}
+.pan-wide.tlpan > .pb{padding:0}
+
+/* ── 순서 · 터미널 ── */
+textarea.seq{width:100%;height:96px;resize:none;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;font:500 12px/1.5 var(--mono);outline:none}
+textarea.seq:focus{border-color:var(--acc)}
+.pan-out.termpan > .pb{padding:0}
+.tape{flex:1;min-height:0;overflow:auto;background:#233642;margin:12px 12px 0;border-radius:8px;padding:8px 10px;
+  font:400 11.5px/1.5 var(--mono);white-space:pre-wrap;word-break:break-all;color:#C9D3DC}
+.tape .tx{color:#F2C879}.tape .rx{color:#8FD9A8}.tape .err{color:#F49A8C}.tape .sys{color:#93A4B2}
+.send{display:flex;gap:6px;padding:10px 12px;flex-shrink:0}
+.send .inp{font-family:var(--mono)}
+
+/* ── 반응형 ── */
+@media (max-width:1100px){
+  .view{height:320px;flex:0 0 auto}
+}

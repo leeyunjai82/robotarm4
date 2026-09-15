@@ -2,406 +2,214 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>미니 로봇 공장 조종실</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  /* ---------- 디자인 토큰 ---------- */
-  :root {
-    --bg: #F3F4F6;
-    --surface: #FFFFFF;
-    --surface-2: #F8F9FB;
-    --line: #E3E6EB;
-    --line-strong: #CDD2DA;
-    --text: #1B2130;
-    --text-2: #5B6472;
-    --text-3: #8A93A2;
-    --primary: #2F6BFF;
-    --primary-hover: #2459DB;
-    --primary-soft: #EAF0FF;
-    --accent: #FFC629;          /* 공장 안전색 */
-    --danger: #E5484D;
-    --danger-soft: #FDECEC;
-    --success: #1DA462;
-    --success-soft: #E6F6EE;
-    --warning: #F59E0B;
-    --sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
-    --mono: "JetBrains Mono", "D2Coding", "SF Mono", Menlo, Consolas, monospace;
-    --r-sm: 6px; --r: 8px; --r-lg: 12px;
-    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
-    --fs-xs: 11px; --fs-sm: 12px; --fs: 13px; --fs-md: 14px; --fs-lg: 16px;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; overflow: hidden; }
-  body {
-    background: var(--bg); color: var(--text);
-    font: 500 var(--fs)/1.45 var(--sans); letter-spacing: -0.005em;
-    display: flex; flex-direction: column;
-    -webkit-font-smoothing: antialiased;
-  }
-  button, input, select, textarea { font: inherit; color: inherit; }
-  button { cursor: pointer; }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  input[type=file] { display: none; }
-  [hidden] { display: none !important; }
-  ::selection { background: var(--primary-soft); }
-  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--r-sm); }
-  svg.i { width: 16px; height: 16px; flex: 0 0 auto; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  svg.i.sm { width: 14px; height: 14px; }
-  svg.i.fill { fill: currentColor; stroke: none; }
-
-  /* ---------- 헤더 ---------- */
-  header {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    padding: 11px 16px 8px; background: var(--surface); border-bottom: 1px solid var(--line);
-    box-shadow: inset 0 3px 0 var(--accent); flex: 0 0 auto;
-  }
-  .brand { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-lg); font-weight: 700; letter-spacing: -0.01em; margin-right: 4px; }
-  .brand .mark { width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--text); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
-  .brand .mark svg { width: 18px; height: 18px; }
-  .sub { color: var(--text-3); font-size: var(--fs-sm); font-weight: 500; }
-  .sp { flex: 1; }
-  .status { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-2); padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); }
-  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); display: block; }
-  .status i.on { background: var(--success); }
-  .status i.busy { background: var(--warning); }
-  .field { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-2); }
-  select, input[type=number], input[type=text] {
-    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); color: var(--text);
-    padding: 4px 8px; height: 30px; font-size: var(--fs);
-  }
-  input[type=number], .rd input { font-family: var(--mono); font-weight: 400; }
-  input[type=checkbox] { accent-color: var(--primary); width: 15px; height: 15px; margin: 0; }
-  input[type=range] { width: 100%; height: 24px; accent-color: var(--primary); background: transparent; margin: 0; }
-
-  /* ---------- 버튼 ---------- */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 12px;
-    border-radius: var(--r); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
-    font-size: var(--fs); font-weight: 600; white-space: nowrap; transition: background .12s, border-color .12s, color .12s;
-  }
-  .btn:hover:not(:disabled) { background: var(--surface-2); border-color: #B9C0CB; }
-  .btn:active:not(:disabled) { background: #EEF0F3; }
-  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-  .btn.primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
-  .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-  .btn.danger:hover:not(:disabled) { background: #CF3D42; border-color: #CF3D42; }
-  .btn.ghost { border-color: transparent; background: transparent; color: var(--text-2); }
-  .btn.ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
-  .btn.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
-  .btn.success.on { background: var(--success-soft); border-color: var(--success); color: var(--success); }
-  .btn.outline-danger { color: var(--danger); border-color: #F3B4B6; }
-  .btn.outline-danger:hover:not(:disabled) { background: var(--danger-soft); }
-  .btn.icon { width: 30px; padding: 0; }
-  .btn.sm { height: 26px; padding: 0 9px; font-size: var(--fs-sm); }
-  .btn.grow { flex: 1; }
-  .warnbar { display: none; padding: 6px 16px; background: #FFF6D9; color: #7A5200; border-bottom: 1px solid #F3DF9C; font-size: var(--fs-sm); flex: 0 0 auto; }
-
-  /* ---------- 레이아웃 ---------- */
-  main { flex: 1; min-height: 0; display: grid; gap: 12px; padding: 12px; grid-template-columns: 320px minmax(0, 1fr) 360px; }
-  .col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .card > h2 {
-    margin: 0; padding: 10px 14px; font-size: var(--fs-md); font-weight: 700; letter-spacing: -0.01em;
-    display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); flex: 0 0 auto;
-  }
-  .card > h2 .i { color: var(--text-2); }
-  .card > h2 > span[data-i18n] { white-space: nowrap; }
-  .card > h2 .meta { font-size: var(--fs-sm); color: var(--text-3); font-weight: 500; }
-  .card > h2 .opt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 500; color: var(--text-2); }
-  .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; overflow: auto; min-height: 0; }
-  .body::-webkit-scrollbar { width: 8px; }
-  .body::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
-  .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .hr { border-top: 1px solid var(--line); margin: 2px 0; }
-  .label { font-size: var(--fs-sm); color: var(--text-2); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
-  .hint { margin: 0; font-size: var(--fs-xs); color: var(--text-3); line-height: 1.5; }
-  .section-title { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
-
-  /* ---------- 축 스트립 ---------- */
-  .strip { display: grid; grid-template-columns: 64px 1fr 84px; align-items: center; gap: 8px; padding: 2px 4px; border-radius: var(--r); border: 1px solid transparent; }
-  .strip.arm { grid-template-columns: 64px 1fr 26px 74px 26px; gap: 6px; }
-  .strip.hl { border-color: var(--primary); background: var(--primary-soft); }
-  .strip label { font-size: var(--fs); font-weight: 600; color: var(--text); }
-  .rd { text-align: right; line-height: 1.1; }
-  .rd input { width: 100%; height: 28px; text-align: right; padding: 0 8px; }
-  .rd input::-webkit-outer-spin-button, .rd input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .rd .sub { display: block; font-size: 10px; color: var(--text-3); white-space: nowrap; font-family: var(--mono); font-weight: 400; margin-top: 2px; }
-  .nb { width: 26px; height: 28px; padding: 0; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; user-select: none; touch-action: none; }
-  .nb:hover { border-color: var(--primary); color: var(--primary); }
-  body.calib .strip.arm:not([data-ch="4"]) .rd input { color: var(--success); border-color: #9BDDB9; }
-  body.calib .strip.arm:not([data-ch="4"]) .nb { color: var(--success); border-color: #9BDDB9; }
-  body.calib .strip.arm:not([data-ch="4"]) .sub { color: var(--success); }
-
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chips .btn { height: 28px; padding: 0 10px; font-family: var(--mono); font-weight: 500; font-size: var(--fs-sm); }
-  .num { width: 64px; }
-
-  /* ---------- 3D 뷰 ---------- */
-  .view { flex: 1 1 auto; min-height: 150px; position: relative; cursor: grab; border-bottom: 1px solid var(--line); background: #E4EEFB; }
-  .view.dragging { cursor: grabbing; }
-  .view canvas { display: block; width: 100%; height: 100%; }
-  .hud { position: absolute; left: 10px; bottom: 8px; font-size: var(--fs-xs); color: var(--text-2); pointer-events: none; background: rgba(255,255,255,.85); border: 1px solid var(--line); padding: 3px 8px; border-radius: 999px; }
-  .tip { position: absolute; display: none; pointer-events: none; z-index: 5; background: var(--text); color: #fff; padding: 3px 9px; font-size: var(--fs-sm); border-radius: var(--r-sm); font-weight: 600; }
-  .toolbar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; flex-wrap: wrap; font-size: var(--fs-sm); color: var(--text-2); flex: 0 0 auto; }
-  .toolbar .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; }
-  .toolbar .seg .btn { border: 0; border-radius: 0; height: 28px; padding: 0 10px; font-weight: 500; }
-  .toolbar .seg .btn + .btn { border-left: 1px solid var(--line); }
-  .toolbar input[type=range] { width: 90px; }
-  .vsep { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
-
-  /* ---------- 타임라인 ---------- */
-  .tlwrap { height: 64px; margin: 0 12px 12px; border: 1px solid var(--line); border-radius: var(--r); position: relative; flex: 0 0 auto; overflow: hidden; }
-  .tlwrap canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
-  .tltime { min-width: 56px; text-align: center; font-family: var(--mono); font-weight: 500; color: var(--text); font-size: var(--fs-sm); }
-
-  /* ---------- 시퀀스 / 터미널 ---------- */
-  textarea.seq { width: 100%; height: 96px; resize: none; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 8px 10px; font: 400 12px/1.5 var(--mono); }
-  .tape { flex: 1; min-height: 0; overflow: auto; background: #151A23; margin: 0 12px; border-radius: var(--r); padding: 8px 10px; font: 400 11.5px/1.5 var(--mono); white-space: pre-wrap; word-break: break-all; color: #C3CAD6; }
-  .tape::-webkit-scrollbar { width: 8px; }
-  .tape::-webkit-scrollbar-thumb { background: #39414F; border-radius: 8px; }
-  .tape .tx { color: #FFD166; } .tape .rx { color: #7EE0A4; } .tape .err { color: #FF7B8A; } .tape .sys { color: #8B97AD; }
-  .send { display: flex; gap: 6px; padding: 10px 12px; flex: 0 0 auto; }
-  .send input { flex: 1; min-width: 0; font-family: var(--mono); font-weight: 400; }
-
-  @media (max-width: 1520px) { header .sub { display: none; } }
-  @media (max-width: 1180px) {
-    html, body { overflow: auto; }
-    main { grid-template-columns: 1fr; }
-    .view { height: 320px; flex: 0 0 auto; }
-    .body { overflow: visible; }
-  }
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arm Lab — 로봇팔 조종실</title>
+<meta name="description" content="로봇팔과 컨베이어를 브라우저에서 직접 움직여 보는 수업용 웹앱">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FBF7EF">
+<link rel="stylesheet" href="assets/fonts/pretendard.css">
+<link rel="stylesheet" href="css/all.min.css">
+<link rel="stylesheet" href="css/maker-ui.css">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
-<!-- 아이콘 스프라이트 (24px 그리드, 2px 스트로크, 라운드 캡) -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="11" rx="2"/><circle cx="12" cy="4.5" r="1.5"/><path d="M12 6v4"/><path d="M8 15h.01M16 15h.01"/><path d="M9 18h6"/></symbol>
-  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2M15 8V2"/><path d="M6 8h12v4a6 6 0 0 1-12 0z"/></symbol>
-  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></symbol>
-  <symbol id="i-stop" viewBox="0 0 24 24"><path d="M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9z"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
-  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></symbol>
-  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></symbol>
-  <symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><path d="M7 4v5M12 4v5M17 4v5"/></symbol>
-  <symbol id="i-belt" viewBox="0 0 24 24"><rect x="2" y="13" width="20" height="6" rx="3"/><circle cx="6" cy="16" r=".8"/><circle cx="12" cy="16" r=".8"/><circle cx="18" cy="16" r=".8"/><rect x="8" y="5" width="8" height="8" rx="1"/></symbol>
-  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></symbol>
-  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
-  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
-  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
-  <symbol id="i-square" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
-  <symbol id="i-skip-back" viewBox="0 0 24 24"><path d="M19 20 9 12l10-8z"/><path d="M5 19V5"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
-  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></symbol>
-  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></symbol>
-  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></symbol>
-  <symbol id="i-axes" viewBox="0 0 24 24"><path d="M5 3v16h16"/><path d="M5 19 19 5"/><path d="M2 6l3-3 3 3"/><path d="M18 16l3 3-3 3"/></symbol>
-  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
-  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
-  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></symbol>
-  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></symbol>
-  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
-  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
-  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14l4-5"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></symbol>
-  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></symbol>
-  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></symbol>
-  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M4 3h16"/></symbol>
-  <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></symbol>
-  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
-  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></symbol>
-  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
-  <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></symbol>
-  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="M20 20H8"/><path d="M8 20 3 15a2 2 0 0 1 0-2.8L12.2 3a2 2 0 0 1 2.8 0l6 6a2 2 0 0 1 0 2.8L13 20"/><path d="M6.5 10.5l7 7"/></symbol>
-</svg>
-
 <header>
-  <span class="brand"><span class="mark"><svg class="i"><use href="#i-bot"/></svg></span><span data-i18n="app.title">미니 로봇 공장 조종실</span></span>
-  <span class="sub" data-i18n="app.sub">로봇팔 4채널 + 컨베이어 2채널</span>
-  <span class="status"><i id="lampLink"></i><span id="lampLinkTxt">로봇 연결 안 됨</span></span>
-  <span class="status"><i id="lampBusy"></i><span id="lampBusyTxt">쉬는 중</span></span>
+  <h1><img src="assets/img/pibo-logo.png" alt=""><span class="brand-txt">Arm Lab</span></h1>
+  <span class="badge" id="lampLink"><i class="dot"></i><span id="lampLinkTxt">로봇 연결 안 됨</span></span>
+  <span class="badge" id="lampBusy"><i class="dot"></i><span id="lampBusyTxt">쉬는 중</span></span>
   <span class="sp"></span>
-  <label class="field"><span data-i18n="hdr.baud">통신속도</span>
-    <select id="baudSel">
+  <label class="fld"><span data-i18n="hdr.baud">통신속도</span>
+    <select class="inp" id="baudSel">
       <option value="9600">9600</option>
       <option value="57600">57600</option>
       <option value="115200" selected>115200</option>
       <option value="1000000">1000000</option>
     </select>
   </label>
-  <label class="field"><input type="checkbox" id="autoRe" checked><span data-i18n="hdr.autore">자동 다시연결</span></label>
-  <button class="btn primary" id="btnConnect"><svg class="i"><use href="#i-plug"/></svg><span data-i18n="hdr.connect">로봇 연결</span></button>
-  <button class="btn" id="btnDisconnect" disabled><svg class="i"><use href="#i-power"/></svg><span data-i18n="hdr.disconnect">연결 끊기</span></button>
-  <button class="btn danger" id="btnStop"><svg class="i"><use href="#i-stop"/></svg><span data-i18n="hdr.stop">멈춰! (ESC)</span></button>
-  <button class="btn" id="btnLang" title="한국어 / English"><svg class="i"><use href="#i-globe"/></svg><span id="btnLangTxt">English</span></button>
+  <label class="fld"><input type="checkbox" id="autoRe" checked><span data-i18n="hdr.autore">자동 다시연결</span></label>
+  <button class="db go" id="btnConnect"><i class="fa-solid fa-plug"></i><span data-i18n="hdr.connect">로봇 연결</span></button>
+  <button class="db" id="btnDisconnect" disabled><i class="fa-solid fa-power-off"></i><span data-i18n="hdr.disconnect">연결 끊기</span></button>
+  <button class="db warn" id="btnStop"><i class="fa-solid fa-hand"></i><span data-i18n="hdr.stop">멈춰! (ESC)</span></button>
+  <button class="lang-toggle" id="langToggle" type="button" title="한국어 / English">EN</button>
 </header>
 <div class="warnbar" id="unsupported" data-i18n="warn.serial">이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.</div>
 
-<main>
-  <!-- 좌: 로봇팔 -->
-  <div class="col">
-    <section class="card" style="flex:1 1 auto">
-      <h2><svg class="i"><use href="#i-bot"/></svg><span data-i18n="arm.title">로봇팔 (ch1-4)</span><span class="sp"></span><label class="opt"><input type="checkbox" id="liveArm" checked><span data-i18n="arm.live">실시간</span></label></h2>
-      <div class="body">
-        <div class="strip arm" data-ch="1"><label for="j1" data-i18n="j1">회전</label><input type="range" id="j1" min="0" max="180" value="90">
-          <button class="nb" data-ch="1" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
-          <span class="rd"><input id="v1" type="number" min="0" max="180" value="90"><span class="sub" id="u1"></span></span>
-          <button class="nb" data-ch="1" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
-        <div class="strip arm" data-ch="2"><label for="j2" data-i18n="j2">어깨</label><input type="range" id="j2" min="0" max="180" value="90">
-          <button class="nb" data-ch="2" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
-          <span class="rd"><input id="v2" type="number" min="0" max="180" value="90"><span class="sub" id="u2"></span></span>
-          <button class="nb" data-ch="2" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
-        <div class="strip arm" data-ch="3"><label for="j3" data-i18n="j3">팔꿈치</label><input type="range" id="j3" min="0" max="180" value="90">
-          <button class="nb" data-ch="3" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
-          <span class="rd"><input id="v3" type="number" min="0" max="180" value="90"><span class="sub" id="u3"></span></span>
-          <button class="nb" data-ch="3" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
-        <div class="strip arm" data-ch="4"><label for="j4" data-i18n="j4">집게</label><input type="range" id="j4" min="0" max="180" value="90">
-          <button class="nb" data-ch="4" data-dir="-1" aria-label="-1"><svg class="i sm"><use href="#i-minus"/></svg></button>
-          <span class="rd"><input id="v4" type="number" min="0" max="180" value="90"><span class="sub" id="u4"></span></span>
-          <button class="nb" data-ch="4" data-dir="1" aria-label="+1"><svg class="i sm"><use href="#i-plus"/></svg></button></div>
-        <p class="hint" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)</p>
+<div class="mk-main">
+
+  <!-- 왼쪽: 로봇팔 -->
+  <div class="pan pan-side">
+    <div class="ph"><i class="fa-solid fa-robot"></i><span data-i18n="arm.title">로봇팔 (ch1-4)</span><span class="sp"></span><label class="opt"><input type="checkbox" id="liveArm" checked><span data-i18n="arm.live">실시간</span></label></div>
+    <div class="pb">
+      <div class="strip arm" data-ch="1"><label for="j1" data-i18n="j1">회전</label><input type="range" id="j1" min="0" max="180" value="90">
+        <button class="nb" data-ch="1" data-dir="-1" aria-label="-1"><i class="fa-solid fa-minus"></i></button>
+        <span class="rd"><input class="inp" id="v1" type="number" min="0" max="180" value="90"><span class="sub" id="u1"></span></span>
+        <button class="nb" data-ch="1" data-dir="1" aria-label="+1"><i class="fa-solid fa-plus"></i></button></div>
+      <div class="strip arm" data-ch="2"><label for="j2" data-i18n="j2">어깨</label><input type="range" id="j2" min="0" max="180" value="90">
+        <button class="nb" data-ch="2" data-dir="-1" aria-label="-1"><i class="fa-solid fa-minus"></i></button>
+        <span class="rd"><input class="inp" id="v2" type="number" min="0" max="180" value="90"><span class="sub" id="u2"></span></span>
+        <button class="nb" data-ch="2" data-dir="1" aria-label="+1"><i class="fa-solid fa-plus"></i></button></div>
+      <div class="strip arm" data-ch="3"><label for="j3" data-i18n="j3">팔꿈치</label><input type="range" id="j3" min="0" max="180" value="90">
+        <button class="nb" data-ch="3" data-dir="-1" aria-label="-1"><i class="fa-solid fa-minus"></i></button>
+        <span class="rd"><input class="inp" id="v3" type="number" min="0" max="180" value="90"><span class="sub" id="u3"></span></span>
+        <button class="nb" data-ch="3" data-dir="1" aria-label="+1"><i class="fa-solid fa-plus"></i></button></div>
+      <div class="strip arm" data-ch="4"><label for="j4" data-i18n="j4">집게</label><input type="range" id="j4" min="0" max="180" value="90">
+        <button class="nb" data-ch="4" data-dir="-1" aria-label="-1"><i class="fa-solid fa-minus"></i></button>
+        <span class="rd"><input class="inp" id="v4" type="number" min="0" max="180" value="90"><span class="sub" id="u4"></span></span>
+        <button class="nb" data-ch="4" data-dir="1" aria-label="+1"><i class="fa-solid fa-plus"></i></button></div>
+      <div class="hint" data-i18n="arm.note">−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(15mm)</div>
+      <div class="row">
+        <button class="db go grow" id="btnArmMove"><i class="fa-solid fa-arrow-right"></i><span data-i18n="arm.move">이 자세로 가기</span></button>
+        <button class="db" id="btnArmHome"><i class="fa-solid fa-house"></i><span data-i18n="arm.home">집으로</span></button>
+        <button class="db" id="btnReset" data-i18n-title="arm.resetTitle"><i class="fa-solid fa-rotate-left"></i><span data-i18n="arm.reset">처음 자세</span></button>
+      </div>
+      <div class="row">
+        <button class="db" id="btnOff"><i class="fa-solid fa-moon"></i><span data-i18n="arm.off">힘 빼기</span></button>
+        <button class="db" id="btnOn"><i class="fa-solid fa-bolt"></i><span data-i18n="arm.on">힘 주기</span></button>
+      </div>
+
+      <div class="sec2">
+        <div class="st"><i class="fa-solid fa-gauge-high"></i><span data-i18n="spd.label">속도</span></div>
         <div class="row">
-          <button class="btn primary grow" id="btnArmMove"><svg class="i"><use href="#i-arrow-right"/></svg><span data-i18n="arm.move">이 자세로 가기</span></button>
-          <button class="btn" id="btnArmHome"><svg class="i"><use href="#i-home"/></svg><span data-i18n="arm.home">집으로</span></button>
-          <button class="btn" id="btnReset" data-i18n-title="arm.resetTitle"><svg class="i"><use href="#i-refresh"/></svg><span data-i18n="arm.reset">처음 자세</span></button>
+          <select class="inp" id="spdJoint" style="flex:0 0 auto;width:auto"><option value="1">ch1</option><option value="2">ch2</option><option value="3">ch3</option><option value="4">ch4</option><option value="5">ch6</option></select>
+          <input class="inp num" id="spdVal" type="number" min="1" max="720" value="60"><span class="unit" data-i18n="spd.unit">도/초</span>
+          <button class="db" id="btnSpeed" data-i18n="spd.send">적용</button>
+          <label class="fld" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);font-weight:600"><input type="checkbox" id="easing" checked style="accent-color:var(--acc);margin:0"><span data-i18n="spd.ease">부드럽게</span></label>
         </div>
+      </div>
+
+      <div class="sec2">
+        <div class="st"><i class="fa-solid fa-star"></i><span data-i18n="pose.title">자세 저장</span></div>
         <div class="row">
-          <button class="btn" id="btnOff"><svg class="i"><use href="#i-moon"/></svg><span data-i18n="arm.off">힘 빼기</span></button>
-          <button class="btn" id="btnOn"><svg class="i"><use href="#i-zap"/></svg><span data-i18n="arm.on">힘 주기</span></button>
-        </div>
-        <div class="hr"></div>
-        <div class="section-title"><svg class="i sm"><use href="#i-gauge"/></svg><span data-i18n="spd.label">속도</span></div>
-        <div class="row">
-          <select id="spdJoint"><option value="1">ch1</option><option value="2">ch2</option><option value="3">ch3</option><option value="4">ch4</option><option value="5">ch6</option></select>
-          <input type="number" class="num" id="spdVal" min="1" max="720" value="60"><span class="label" data-i18n="spd.unit">도/초</span>
-          <button class="btn" id="btnSpeed" data-i18n="spd.send">적용</button>
-          <label class="field" style="margin-left:auto"><input type="checkbox" id="easing" checked><span data-i18n="spd.ease">부드럽게</span></label>
-        </div>
-        <div class="hr"></div>
-        <div class="section-title"><svg class="i sm"><use href="#i-star"/></svg><span data-i18n="pose.title">자세 저장</span></div>
-        <div class="row">
-          <input type="text" id="presetName" data-i18n-placeholder="pose.ph" placeholder="자세 이름" style="width:110px">
-          <button class="btn" id="btnPresetSave"><svg class="i"><use href="#i-plus"/></svg><span data-i18n="pose.save">지금 자세 저장</span></button>
+          <input class="inp" id="presetName" type="text" data-i18n-placeholder="pose.ph" placeholder="자세 이름" maxlength="20">
+          <button class="db" id="btnPresetSave" data-i18n-title="pose.save"><i class="fa-solid fa-plus"></i></button>
         </div>
         <div class="chips" id="presets"></div>
-        <p class="hint" data-i18n="pose.note">Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요</p>
+        <div class="hint" data-i18n="pose.note">Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요</div>
         <div class="row">
-          <button class="btn sm" id="btnPoseFileSave"><svg class="i sm"><use href="#i-download"/></svg><span data-i18n="pose.fileSave">pose.json 저장</span></button>
-          <button class="btn sm" id="btnPoseFileLoad"><svg class="i sm"><use href="#i-upload"/></svg><span data-i18n="pose.fileLoad">불러오기</span></button>
+          <button class="db" id="btnPoseFileSave"><i class="fa-solid fa-download"></i><span data-i18n="pose.fileSave">pose.json 저장</span></button>
+          <button class="db" id="btnPoseFileLoad"><i class="fa-solid fa-upload"></i><span data-i18n="pose.fileLoad">불러오기</span></button>
           <input type="file" id="poseFileIn" accept=".json">
         </div>
-        <div class="hr"></div>
+      </div>
+
+      <div class="sec2">
         <div class="row">
-          <button class="btn success" id="btnCalib"><svg class="i"><use href="#i-crosshair"/></svg><span data-i18n="cal.btn">영점 맞추기</span></button>
-          <button class="btn outline-danger" id="btnCalibReset" hidden><svg class="i"><use href="#i-eraser"/></svg><span data-i18n="cal.reset">보정값 지우기</span></button>
+          <button class="db" id="btnCalib"><i class="fa-solid fa-crosshairs"></i><span data-i18n="cal.btn">영점 맞추기</span></button>
+          <button class="db danger" id="btnCalibReset" hidden><i class="fa-solid fa-eraser"></i><span data-i18n="cal.reset">보정값 지우기</span></button>
           <span class="hint" id="calibTxt" style="margin-left:auto"></span>
         </div>
-        <p class="hint" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</p>
+        <div class="hint" id="calibHelp" hidden data-i18n="cal.help">영점 모드: −/+ 가 ch1-3 오프셋을 1°씩 바꿔요(진짜 로봇 전송값에만 적용, 브라우저에 저장). 로봇이 똑바로 설 때까지 맞추세요.</div>
       </div>
-    </section>
+    </div>
   </div>
 
-  <!-- 중: 3D + 타임라인 -->
-  <div class="col">
-    <section class="card" style="flex:1 1 auto">
-      <h2><svg class="i"><use href="#i-cube"/></svg><span data-i18n="view.title">3D 공장 보기</span><span class="sp"></span><span class="meta" data-i18n="view.echo">명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)</span></h2>
-      <div class="view" id="sceneBox">
-        <canvas id="sim"></canvas>
-        <div class="hud"><span id="fpsTxt">FPS --</span> · <span data-i18n="view.hud">왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기</span></div>
-        <div class="tip" id="tip"></div>
-      </div>
-      <div class="toolbar">
-        <span class="seg">
-          <button class="btn" data-cam="all" data-i18n="view.all">전체</button>
-          <button class="btn" data-cam="arm" data-i18n="view.arm">로봇팔</button>
-          <button class="btn" data-cam="belt" data-i18n="view.belt">벨트</button>
-          <button class="btn" data-cam="flag" data-i18n="view.flag">차단봉</button>
-          <button class="btn" data-cam="top" data-i18n="view.top">위에서</button>
-        </span>
-        <span class="vsep"></span>
-        <button class="btn sm on" id="btnGrid"><svg class="i sm"><use href="#i-grid"/></svg><span data-i18n="view.grid">바닥선</span></button>
-        <button class="btn sm" id="btnWire"><svg class="i sm"><use href="#i-cube"/></svg><span data-i18n="view.wire">뼈대</span></button>
-        <button class="btn sm" id="btnAxes"><svg class="i sm"><use href="#i-axes"/></svg><span data-i18n="view.axes">회전축</span></button>
-        <button class="btn sm" id="btnShot"><svg class="i sm"><use href="#i-camera"/></svg><span data-i18n="view.shot">사진</span></button>
-        <label class="field" style="margin-left:auto"><svg class="i sm"><use href="#i-zoom"/></svg>
-          <input type="range" id="camZoom" min="0.15" max="10" step="0.05" value="1.6">
-          <span id="camZoomTxt" style="font-family:var(--mono);min-width:34px">1.6x</span></label>
-      </div>
-    </section>
-
-    <section class="card" style="flex:0 0 auto">
-      <h2><svg class="i"><use href="#i-film"/></svg><span data-i18n="tl.title">동작 타임라인 (ch1-4)</span><span class="sp"></span><span class="meta" id="tlKfCount">장면 0개</span></h2>
-      <div class="toolbar">
-        <button class="btn icon" id="tlToStart" data-i18n-title="tl.toStart"><svg class="i"><use href="#i-skip-back"/></svg></button>
-        <button class="btn icon" id="tlPlay" data-i18n-title="tl.play"><svg class="i fill" id="icPlay"><use href="#i-play"/></svg><svg class="i fill" id="icPause" hidden><use href="#i-pause"/></svg></button>
-        <button class="btn icon" id="tlStop" data-i18n-title="tl.stop"><svg class="i fill"><use href="#i-square"/></svg></button>
-        <span class="tltime" id="tlTime">0.00s</span>
-        <span class="vsep"></span>
-        <button class="btn primary" id="tlAdd"><svg class="i"><use href="#i-plus"/></svg><span data-i18n="tl.add">장면 추가</span></button>
-        <button class="btn" id="tlDel"><svg class="i"><use href="#i-trash"/></svg><span data-i18n="tl.del">지우기</span></button>
-        <span class="vsep"></span>
-        <label class="field"><span data-i18n="tl.len">길이</span><input type="number" id="tlDur" value="30" min="1" max="120" step="1" style="width:56px">s</label>
-        <label class="field"><span data-i18n="tl.speed">빠르기</span><select id="tlSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
-        <button class="btn" id="tlLoop"><svg class="i"><use href="#i-repeat"/></svg><span data-i18n="tl.loop">반복</span></button>
-        <span class="vsep"></span>
-        <button class="btn sm" id="tlSave"><svg class="i sm"><use href="#i-download"/></svg><span data-i18n="tl.save">motion.txt 저장</span></button>
-        <button class="btn sm" id="tlLoad"><svg class="i sm"><use href="#i-upload"/></svg><span data-i18n="tl.load">불러오기</span></button>
-        <input type="file" id="motionFileIn" accept=".txt,.json">
-      </div>
-      <div class="tlwrap" id="tlWrap"><canvas id="tlCanvas"></canvas></div>
-    </section>
-  </div>
-
-  <!-- 우: 컨베이어 + 순서 + 대화 -->
-  <div class="col">
-    <section class="card" style="flex:0 0 auto">
-      <h2><svg class="i"><use href="#i-belt"/></svg><span data-i18n="conv.title">컨베이어 (ch5-6)</span></h2>
-      <div class="body">
-        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="0" max="90" value="45">
-          <span class="rd"><input id="rollerVal" type="number" min="0" max="90" value="45"><span class="sub" id="u5"></span></span></div>
-        <div class="row">
-          <button class="btn primary grow" id="btnBeltFwd"><svg class="i"><use href="#i-arrow-right"/></svg><span data-i18n="conv.fwd">앞으로</span></button>
-          <button class="btn primary grow" id="btnBeltBack"><svg class="i"><use href="#i-arrow-left"/></svg><span data-i18n="conv.back">뒤로</span></button>
-          <button class="btn" id="btnRollerStop"><svg class="i fill"><use href="#i-square"/></svg><span data-i18n="conv.stop">멈춤</span></button>
+  <!-- 가운데: 3D + 타임라인 -->
+  <div class="pan-wide" style="display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0">
+    <div class="pan pan-wide" style="flex:1 1 auto">
+      <div class="ph"><i class="fa-solid fa-cube"></i><span data-i18n="view.title">3D 공장 보기</span><span class="sp"></span><span class="meta" data-i18n="view.echo">명령대로 움직이는 그림이에요 (진짜 위치는 아니에요)</span></div>
+      <div class="pb">
+        <div class="view" id="sceneBox">
+          <canvas id="sim"></canvas>
+          <div class="hud"><span id="fpsTxt">FPS --</span> · <span data-i18n="view.hud">왼쪽 드래그: 돌리기 · 오른쪽/Shift: 옮기기 · 휠: 확대 · 클릭: 부품 보기</span></div>
+          <div class="tip" id="tip"></div>
         </div>
-        <div class="hr"></div>
-        <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
-          <span class="rd"><input id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
-        <p class="hint" data-i18n="conv.flagNote">0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)</p>
+        <div class="toolbar">
+          <span class="seg">
+            <button data-cam="all" data-i18n="view.all">전체</button>
+            <button data-cam="arm" data-i18n="view.arm">로봇팔</button>
+            <button data-cam="belt" data-i18n="view.belt">벨트</button>
+            <button data-cam="flag" data-i18n="view.flag">차단봉</button>
+            <button data-cam="top" data-i18n="view.top">위에서</button>
+          </span>
+          <span class="vsep"></span>
+          <button class="db on" id="btnGrid"><i class="fa-solid fa-border-all"></i><span data-i18n="view.grid">바닥선</span></button>
+          <button class="db" id="btnWire"><i class="fa-solid fa-cube"></i><span data-i18n="view.wire">뼈대</span></button>
+          <button class="db" id="btnAxes"><i class="fa-solid fa-arrows-up-down-left-right"></i><span data-i18n="view.axes">회전축</span></button>
+          <button class="db" id="btnShot"><i class="fa-solid fa-camera"></i><span data-i18n="view.shot">사진</span></button>
+          <label class="zoom"><i class="fa-solid fa-magnifying-glass-plus"></i>
+            <input type="range" id="camZoom" min="0.15" max="10" step="0.05" value="1.6">
+            <span class="num" id="camZoomTxt">1.6x</span></label>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="card" style="flex:0 0 auto">
-      <h2><svg class="i"><use href="#i-list"/></svg><span data-i18n="seq.title">순서대로 시키기</span><span class="sp"></span><button class="btn sm ghost" id="btnSeqExample"><svg class="i sm"><use href="#i-bulb"/></svg><span data-i18n="seq.example">예제 넣기</span></button></h2>
-      <div class="body">
+    <div class="pan pan-wide tlpan">
+      <div class="ph"><i class="fa-solid fa-clapperboard"></i><span data-i18n="tl.title">동작 타임라인 (ch1-4)</span><span class="sp"></span><span class="meta" id="tlKfCount">장면 0개</span></div>
+      <div class="pb">
+        <div class="toolbar">
+          <button class="db" id="tlToStart" data-i18n-title="tl.toStart"><i class="fa-solid fa-backward-step"></i></button>
+          <button class="db" id="tlPlay" data-i18n-title="tl.play"><i class="fa-solid fa-play" id="icPlay"></i><i class="fa-solid fa-pause" id="icPause" hidden></i></button>
+          <button class="db" id="tlStop" data-i18n-title="tl.stop"><i class="fa-solid fa-stop"></i></button>
+          <span class="tltime" id="tlTime">0.00s</span>
+          <span class="vsep"></span>
+          <button class="db go" id="tlAdd"><i class="fa-solid fa-plus"></i><span data-i18n="tl.add">장면 추가</span></button>
+          <button class="db danger" id="tlDel"><i class="fa-solid fa-trash"></i><span data-i18n="tl.del">지우기</span></button>
+          <span class="vsep"></span>
+          <label class="fld" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);font-weight:600"><span data-i18n="tl.len">길이</span><input class="inp num" id="tlDur" type="number" value="30" min="1" max="120" step="1" style="width:56px">s</label>
+          <label class="fld" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);font-weight:600"><span data-i18n="tl.speed">빠르기</span><select class="inp" id="tlSpeed" style="flex:0 0 auto;width:auto"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+          <button class="db" id="tlLoop"><i class="fa-solid fa-repeat"></i><span data-i18n="tl.loop">반복</span></button>
+          <span class="vsep"></span>
+          <button class="db" id="tlSave"><i class="fa-solid fa-download"></i><span data-i18n="tl.save">motion.txt 저장</span></button>
+          <button class="db" id="tlLoad"><i class="fa-solid fa-upload"></i><span data-i18n="tl.load">불러오기</span></button>
+          <input type="file" id="motionFileIn" accept=".txt,.json">
+        </div>
+        <div class="tlwrap" id="tlWrap"><canvas id="tlCanvas"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 오른쪽: 컨베이어 + 순서 + 대화 -->
+  <div class="pan-out" style="display:flex;flex-direction:column;gap:12px;min-height:0">
+    <div class="pan" style="flex:0 0 auto">
+      <div class="ph"><i class="fa-solid fa-industry"></i><span data-i18n="conv.title">컨베이어 (ch5-6)</span></div>
+      <div class="pb">
+        <div class="strip"><label for="roller" data-i18n="conv.roll">벨트</label><input type="range" id="roller" min="0" max="90" value="45">
+          <span class="rd"><input class="inp" id="rollerVal" type="number" min="0" max="90" value="45"><span class="sub" id="u5"></span></span></div>
+        <div class="row">
+          <button class="db go grow" id="btnBeltFwd"><i class="fa-solid fa-arrow-right"></i><span data-i18n="conv.fwd">앞으로</span></button>
+          <button class="db go grow" id="btnBeltBack"><i class="fa-solid fa-arrow-left"></i><span data-i18n="conv.back">뒤로</span></button>
+          <button class="db" id="btnRollerStop"><i class="fa-solid fa-stop"></i><span data-i18n="conv.stop">멈춤</span></button>
+        </div>
+        <div class="sec2">
+          <div class="strip"><label for="flag" data-i18n="conv.flag">차단봉</label><input type="range" id="flag" min="-90" max="90" value="0">
+            <span class="rd"><input class="inp" id="flagVal" type="number" min="-90" max="90" value="0"><span class="sub" id="u6"></span></span></div>
+          <div class="hint" data-i18n="conv.flagNote">0 = 벨트 막기 · +90 = 열기 (슬라이더를 놓으면 바로 움직여요)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pan" style="flex:0 0 auto">
+      <div class="ph"><i class="fa-solid fa-list-ol"></i><span data-i18n="seq.title">순서대로 시키기</span><span class="sp"></span><button class="db quiet" id="btnSeqExample"><i class="fa-solid fa-lightbulb"></i><span data-i18n="seq.example">예제 넣기</span></button></div>
+      <div class="pb">
         <textarea class="seq" id="seq" spellcheck="false" placeholder="pose home
 waitdone
 #m1:45,1500!
 wait 1600
 #m2:90,1200!"></textarea>
         <div class="row">
-          <button class="btn primary" id="btnSeqRun"><svg class="i fill"><use href="#i-play"/></svg><span data-i18n="seq.run">실행</span></button>
-          <button class="btn" id="btnSeqStop" disabled><svg class="i fill"><use href="#i-square"/></svg><span data-i18n="seq.stop">멈춤</span></button>
-          <label class="field"><input type="checkbox" id="seqLoop"><span data-i18n="seq.loop">반복</span></label>
+          <button class="db go" id="btnSeqRun"><i class="fa-solid fa-play"></i><span data-i18n="seq.run">실행</span></button>
+          <button class="db" id="btnSeqStop" disabled><i class="fa-solid fa-stop"></i><span data-i18n="seq.stop">멈춤</span></button>
+          <label class="fld" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);font-weight:600"><input type="checkbox" id="seqLoop" style="accent-color:var(--acc);margin:0"><span data-i18n="seq.loop">반복</span></label>
           <span class="hint" style="margin-left:auto;font-family:var(--mono)">wait N / waitdone / pose</span>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="card" style="flex:1 1 auto">
-      <h2><svg class="i"><use href="#i-chat"/></svg><span data-i18n="term.title">로봇과 대화하기</span><span class="sp"></span><button class="btn sm ghost" id="btnPos"><svg class="i sm"><use href="#i-pin"/></svg><span data-i18n="term.pos">#pos 어디니?</span></button><button class="btn sm ghost" id="btnClear"><svg class="i sm"><use href="#i-trash"/></svg><span data-i18n="term.clear">지우기</span></button></h2>
-      <div class="tape" id="term"></div>
-      <div class="send">
-        <input id="cmd" type="text" placeholder="#pos!  #map!  #m:90,45,120,90!" autocomplete="off">
-        <button class="btn primary" id="btnSend"><svg class="i"><use href="#i-send"/></svg><span data-i18n="term.send">보내기</span></button>
+    <div class="pan termpan" style="flex:1 1 auto">
+      <div class="ph"><i class="fa-solid fa-terminal"></i><span data-i18n="term.title">로봇과 대화하기</span><span class="sp"></span><button class="db quiet" id="btnPos"><i class="fa-solid fa-location-dot"></i><span data-i18n="term.pos">#pos 어디니?</span></button><button class="db quiet" id="btnClear"><i class="fa-solid fa-eraser"></i><span data-i18n="term.clear">지우기</span></button></div>
+      <div class="pb">
+        <div class="tape" id="term"></div>
+        <div class="send">
+          <input class="inp" id="cmd" type="text" placeholder="#pos!  #map!  #m:90,45,120,90!" autocomplete="off">
+          <button class="db go" id="btnSend"><i class="fa-solid fa-paper-plane"></i><span data-i18n="term.send">보내기</span></button>
+        </div>
       </div>
-    </section>
+    </div>
   </div>
-</main>
+
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -411,7 +219,7 @@ wait 1600
   const SEND_INTERVAL = 200;         // ms, 실시간/타임라인 #m 전송 최소 간격 (값 바뀔 때만)
   const CAL_KEY = 'armConveyorCal';
   const PKEY = 'armConveyorPoses';
-  const LANG_KEY = 'armConveyorLang';
+  const LANG_KEY = 'language';            // Sense Lab · 파이보 랩과 같은 키 (언어 선택 공유)
 
   const $ = id => document.getElementById(id);
   const term = $('term');
@@ -427,7 +235,7 @@ wait 1600
   /* ===================== 한/영 ===================== */
   const I18N = {
     ko: {
-      'app.title': '미니 로봇 공장 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
+      'app.title': 'Arm Lab — 로봇팔 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
       'hdr.noboard': '로봇 연결 안 됨', 'hdr.idle': '쉬는 중', 'hdr.working': '일하는 중', 'hdr.released': '힘 빼기 상태', 'hdr.playing': '동작 재생 중',
       'hdr.baud': '통신속도', 'hdr.autore': '자동 다시연결', 'hdr.connect': '로봇 연결', 'hdr.disconnect': '연결 끊기', 'hdr.stop': '멈춰! (ESC)',
       'hdr.lang': 'English',
@@ -469,7 +277,7 @@ wait 1600
       'log.lang': '언어: 한국어'
     },
     en: {
-      'app.title': 'Mini Robot Factory Control Room', 'app.sub': 'Arm 4ch + Conveyor 2ch',
+      'app.title': 'Arm Lab — Robot Arm', 'app.sub': 'Arm 4ch + Conveyor 2ch',
       'hdr.noboard': 'No robot', 'hdr.idle': 'Resting', 'hdr.working': 'Working', 'hdr.released': 'Relaxed (torque off)', 'hdr.playing': 'Playing motion',
       'hdr.baud': 'Baud', 'hdr.autore': 'Auto reconnect', 'hdr.connect': 'Connect', 'hdr.disconnect': 'Disconnect', 'hdr.stop': 'STOP (ESC)',
       'hdr.lang': '한국어',
@@ -511,7 +319,7 @@ wait 1600
       'log.lang': 'Language: English'
     }
   };
-  let lang = 'ko';
+  let lang = /^ko/i.test(navigator.language || 'ko') ? 'ko' : 'en';
   try { const s = localStorage.getItem(LANG_KEY); if (s === 'en' || s === 'ko') lang = s; } catch {}
   function t(key, vars) {
     let s = (I18N[lang] && I18N[lang][key]) ?? I18N.ko[key] ?? key;
@@ -524,11 +332,11 @@ wait 1600
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
     document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
-    $('btnLangTxt').textContent = t('hdr.lang');
+    $('langToggle').textContent = lang === 'ko' ? 'EN' : '한';
     setConnected(!!port, port ? describePort(port) : '');
     kfCount(); renderPoses(); relabel3d();
   }
-  $('btnLang').onclick = () => {
+  $('langToggle').onclick = () => {
     lang = lang === 'ko' ? 'en' : 'ko';
     try { localStorage.setItem(LANG_KEY, lang); } catch {}
     applyLang(); log(t('log.lang'), 'sys');
@@ -633,7 +441,7 @@ wait 1600
     g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 160, 41);
     const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter; return tex;
   }
-  function label(key, color = '#24314d') {
+  function label(key, color = '#2A2620') {
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeLabelTexture(t(key), color), transparent: true, depthTest: false }));
     sp.scale.set(1.5, 0.375, 1);
     labels.push({ sprite: sp, key, color });
@@ -651,36 +459,36 @@ wait 1600
 
   function buildScene() {
     renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true });
-    renderer.setClearColor(0xdfeeff, 1);
+    renderer.setClearColor(0xF3EFE6, 1);
     scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xdfeeff, 30, 110);
+    scene.fog = new THREE.Fog(0xF3EFE6, 30, 110);
     camera = new THREE.PerspectiveCamera(48, 1, 0.05, 400);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xb8c6dc, 0.95));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xCFC7B8, 0.95));
     const dl = new THREE.DirectionalLight(0xffffff, 0.7); dl.position.set(-4, 8, 5); scene.add(dl);
     const dl2 = new THREE.DirectionalLight(0xfff0d0, 0.3); dl2.position.set(6, 4, -6); scene.add(dl2);
     const rim = new THREE.DirectionalLight(0xffffff, 0.25); rim.position.set(0, 3, -8); scene.add(rim);
 
-    grid = new THREE.GridHelper(80, 80, 0x9fb3cf, 0xcbd8ea); scene.add(grid);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshLambertMaterial({ color: 0xe9f0f9 }));
+    grid = new THREE.GridHelper(80, 80, 0xCFC7B8, 0xE6E0D3); scene.add(grid);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshLambertMaterial({ color: 0xF3EFE6 }));
     floor.rotation.x = -Math.PI / 2; floor.position.y = -0.01; scene.add(floor);
     worldAxes = new THREE.AxesHelper(1.6); worldAxes.position.set(0, 0.02, 0); worldAxes.visible = false; scene.add(worldAxes);
 
     /* --- 컨베이어 --- */
     const len = BELT.x1 - BELT.x0, cx = (BELT.x0 + BELT.x1) / 2;
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(len, 0.34, BELT.w + 0.22), new THREE.MeshLambertMaterial({ color: 0x3f7ef2 }));
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(len, 0.34, BELT.w + 0.22), new THREE.MeshLambertMaterial({ color: 0x1F5F7A }));
     frame.position.set(cx, BELT.top - 0.22, 0); scene.add(frame);
     [-1, 1].forEach(sz => {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.07), new THREE.MeshLambertMaterial({ color: 0xffc233 }));
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.1, 0.07), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
       rail.position.set(cx, BELT.top + 0.05, sz * (BELT.w / 2 + 0.06)); scene.add(rail);
     });
     [BELT.x0 + 0.3, BELT.x1 - 0.3].forEach(lx => [-1, 1].forEach(sz => {
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, BELT.top - 0.38, 0.12), new THREE.MeshLambertMaterial({ color: 0x2f5fbf }));
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, BELT.top - 0.38, 0.12), new THREE.MeshLambertMaterial({ color: 0x12455C }));
       leg.position.set(lx, (BELT.top - 0.38) / 2, sz * (BELT.w / 2 - 0.1)); scene.add(leg);
     }));
     const tc = document.createElement('canvas'); tc.width = 64; tc.height = 64;
     const tg = tc.getContext('2d');
-    tg.fillStyle = '#3d4658'; tg.fillRect(0, 0, 64, 64);
+    tg.fillStyle = '#4A423A'; tg.fillRect(0, 0, 64, 64);
     tg.fillStyle = 'rgba(255,255,255,.28)'; tg.fillRect(0, 0, 8, 64);
     beltTex = new THREE.CanvasTexture(tc);
     beltTex.wrapS = beltTex.wrapT = THREE.RepeatWrapping;
@@ -689,17 +497,17 @@ wait 1600
     belt.rotation.x = -Math.PI / 2; belt.position.set(cx, BELT.top, 0); scene.add(belt);
     parts.rollers = [];
     [BELT.x0, BELT.x1].forEach(x => {
-      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x8d99ae }));
+      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, BELT.w, 20), new THREE.MeshLambertMaterial({ color: 0x9A8F7D }));
       r.rotation.x = Math.PI / 2; r.position.set(x, BELT.top - 0.14, 0);
-      r.add(new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xf4f6fa })));
+      r.add(new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.02, BELT.w + 0.01), new THREE.MeshBasicMaterial({ color: 0xFBF7EF })));
       scene.add(r); parts.rollers.push(r);
     });
     // 구동 서보 (ch5)
-    const drv = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.26), new THREE.MeshLambertMaterial({ color: 0x24314d }));
+    const drv = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
     drv.position.set(BELT.x0 - 0.05, BELT.top - 0.16, BELT.w / 2 + 0.2); scene.add(drv);
 
     /* --- 차단봉 (ch6) : 벨트 건너편 수평 스윕, 0° 차단 / +90° 개방 --- */
-    const servo = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.26), new THREE.MeshLambertMaterial({ color: 0x24314d }));
+    const servo = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.3, 0.26), new THREE.MeshLambertMaterial({ color: 0x2A2620 }));
     servo.position.set(FLAG.x, BELT.top - 0.02, FLAG.z - 0.1); scene.add(servo);
     parts.flag = new THREE.Group();
     parts.flag.position.set(FLAG.x, BELT.top + 0.16, FLAG.z);
@@ -709,7 +517,7 @@ wait 1600
     const sc = document.createElement('canvas'); sc.width = 64; sc.height = 8;
     const sg = sc.getContext('2d');
     sg.fillStyle = '#ffffff'; sg.fillRect(0, 0, 64, 8);
-    sg.fillStyle = '#ef476f'; sg.fillRect(0, 0, 16, 8); sg.fillRect(32, 0, 16, 8);
+    sg.fillStyle = '#B4451C'; sg.fillRect(0, 0, 16, 8); sg.fillRect(32, 0, 16, 8);
     const stripeTex = new THREE.CanvasTexture(sc); stripeTex.wrapS = THREE.RepeatWrapping; stripeTex.repeat.set(2, 1);
     const blade = new THREE.Mesh(new THREE.BoxGeometry(FLAG.len * 0.66, 0.26, 0.05), new THREE.MeshLambertMaterial({ map: stripeTex }));
     blade.position.set(FLAG.len * 0.66, 0.06, 0);
@@ -717,11 +525,11 @@ wait 1600
 
     /* --- 로봇팔 (하비서보 브래킷 구조) --- */
     const MAT = {
-      anod:  new THREE.MeshPhongMaterial({ color: 0x4f8cf7, shininess: 30 }),
-      dark:  new THREE.MeshPhongMaterial({ color: 0x24314d, shininess: 18 }),
-      hub:   new THREE.MeshPhongMaterial({ color: 0xffc233, shininess: 60 }),
-      steel: new THREE.MeshPhongMaterial({ color: 0xc9d2de, shininess: 70 }),
-      pad:   new THREE.MeshPhongMaterial({ color: 0xff8a3d, shininess: 8 })
+      anod:  new THREE.MeshPhongMaterial({ color: 0x1F5F7A, shininess: 30 }),
+      dark:  new THREE.MeshPhongMaterial({ color: 0x2A2620, shininess: 18 }),
+      hub:   new THREE.MeshPhongMaterial({ color: 0xB4451C, shininess: 60 }),
+      steel: new THREE.MeshPhongMaterial({ color: 0xC9C2B4, shininess: 70 }),
+      pad:   new THREE.MeshPhongMaterial({ color: 0x4A3F2E, shininess: 8 })
     };
     function servoBlock(scale = 1) {
       const g = new THREE.Group();
@@ -829,9 +637,9 @@ wait 1600
       const ax = new THREE.AxesHelper(0.55); ax.visible = false; g.add(ax); procAxes.push(ax);
     });
 
-    const l1s = label('lbl.arm', '#3f7ef2'); l1s.position.set(BASE.x, 0.3, BASE.z + 1.0); scene.add(l1s);
-    const l2s = label('lbl.belt', '#24314d'); l2s.position.set(BELT.x0 + 0.25, BELT.top + 0.55, 0); scene.add(l2s);
-    const l3s = label('lbl.flag', '#ef476f'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); scene.add(l3s);
+    const l1s = label('lbl.arm', '#12455C'); l1s.position.set(BASE.x, 0.3, BASE.z + 1.0); scene.add(l1s);
+    const l2s = label('lbl.belt', '#2A2620'); l2s.position.set(BELT.x0 + 0.25, BELT.top + 0.55, 0); scene.add(l2s);
+    const l3s = label('lbl.flag', '#B4451C'); l3s.position.set(FLAG.x + 0.1, BELT.top + 0.7, FLAG.z - 0.35); scene.add(l3s);
   }
 
   const gripGapMm = v => 45 - (v / 180) * 30;      // 0 = 열림 45mm, 180 = 닫힘 15mm
@@ -921,7 +729,7 @@ wait 1600
     document.querySelectorAll('.strip.hl').forEach(el => el.classList.remove('hl'));
     if (!hits.length) { $('tip').style.display = 'none'; return; }
     picked = hits[0].object;
-    if (picked.material.emissive) { pickedColor = picked.material.emissive.getHex(); picked.material.emissive.setHex(0x8a5a00); }
+    if (picked.material.emissive) { pickedColor = picked.material.emissive.getHex(); picked.material.emissive.setHex(0x5A2A10); }
     const ch = picked.userData.ch || 1;
     const row = document.querySelector(`.strip.arm[data-ch="${ch}"]`);
     if (row) { row.classList.add('hl'); row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
@@ -992,34 +800,34 @@ wait 1600
   function drawTimeline() {
     const g = tlCanvas.getContext('2d'), W = tlW, H = tlH, TH = H - 14, mid = TH / 2;
     g.clearRect(0, 0, W, H);
-    g.fillStyle = '#f4f7fd'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#FBFAF5'; g.fillRect(0, 0, W, H);
     const step = tl.dur <= 30 ? 1 : tl.dur <= 60 ? 2 : 5;
-    g.font = '500 9px "JetBrains Mono", "Courier New", monospace';
+    g.font = '600 9px "Pretendard Variable", Pretendard, sans-serif';
     for (let tt = 0; tt <= tl.dur; tt += step) {
       const x = Math.round(tToX(tt)) + .5;
-      g.strokeStyle = tt % 5 === 0 ? '#c9d5e8' : '#e3eaf5'; g.lineWidth = 1;
+      g.strokeStyle = tt % 5 === 0 ? '#DCD5C6' : '#EFEAE0'; g.lineWidth = 1;
       g.beginPath(); g.moveTo(x, 0); g.lineTo(x, TH); g.stroke();
-      if (tt % (step * 5) === 0 || step === 1 && tt % 5 === 0) { g.fillStyle = '#7d89a6'; g.fillText(tt + 's', x + 2, H - 3); }
+      if (tt % (step * 5) === 0 || step === 1 && tt % 5 === 0) { g.fillStyle = '#6B6255'; g.fillText(tt + 's', x + 2, H - 3); }
     }
     const ex = Math.round(tToX(tl.dur)) + .5;
-    g.strokeStyle = '#3f7ef2'; g.setLineDash([3, 3]);
+    g.strokeStyle = '#1F5F7A'; g.setLineDash([3, 3]);
     g.beginPath(); g.moveTo(ex, 0); g.lineTo(ex, TH); g.stroke(); g.setLineDash([]);
     const s = sortedKfs();
     if (s.length > 1) {
-      g.strokeStyle = '#9fb3cf'; g.lineWidth = 2;
+      g.strokeStyle = '#9A8F7D'; g.lineWidth = 2;
       g.beginPath(); g.moveTo(tToX(s[0].time), mid);
       s.slice(1).forEach(k => g.lineTo(tToX(k.time), mid)); g.stroke();
     }
     for (const k of s) {
       const x = tToX(k.time), sel = k.id === tl.sel, R = sel ? 8 : 6;
-      g.fillStyle = sel ? '#ffc233' : '#3f7ef2';
+      g.fillStyle = sel ? '#12455C' : '#1F5F7A';
       g.beginPath(); g.moveTo(x, mid - R); g.lineTo(x + R, mid); g.lineTo(x, mid + R); g.lineTo(x - R, mid); g.closePath(); g.fill();
-      if (sel) { g.strokeStyle = '#e0a400'; g.lineWidth = 1.5; g.stroke(); g.fillStyle = '#24314d'; g.fillText(k.joints.map(Math.round).join(','), x + 10, mid - 8); }
+      if (sel) { g.strokeStyle = '#B4451C'; g.lineWidth = 1.5; g.stroke(); g.fillStyle = '#2A2620'; g.fillText(k.joints.map(Math.round).join(','), x + 10, mid - 8); }
     }
     const px = tToX(tl.t);
-    g.strokeStyle = '#ef476f'; g.lineWidth = 2;
+    g.strokeStyle = '#B4451C'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(px, 0); g.lineTo(px, TH); g.stroke();
-    g.fillStyle = '#ef476f';
+    g.fillStyle = '#B4451C';
     g.beginPath(); g.moveTo(px - 5, 0); g.lineTo(px + 5, 0); g.lineTo(px, 7); g.closePath(); g.fill();
   }
   const tlX = e => e.clientX - tlCanvas.getBoundingClientRect().left;
@@ -1126,7 +934,7 @@ wait 1600
     $('u5').textContent = sim.roller ? angToUs(90 + sim.roller) + 'µs' : t('row.cut');
     $('u6').textContent = angToUs(+$('flagVal').value + 90) + 'µs';
     const b = simBusy() || sim.roller !== 0 || seqRunning || tl.playing;
-    $('lampBusy').className = b ? 'busy' : '';
+    $('lampBusy').className = b ? 'badge busy' : 'badge';
     $('lampBusyTxt').textContent = sim.released ? t('hdr.released') : tl.playing ? t('hdr.playing') : b ? t('hdr.working') : t('hdr.idle');
     $('calibTxt').textContent = hasCal() ? `${t('cal.txt')} ${cal.map(v => (v >= 0 ? '+' : '') + v).join(' / ')}` : '';
   }
@@ -1143,7 +951,7 @@ wait 1600
     return t('port.generic');
   }
   function setConnected(on, info = '') {
-    $('lampLink').className = on ? 'on' : '';
+    $('lampLink').className = on ? 'badge ok' : 'badge';
     $('lampLinkTxt').textContent = on ? `${info} · ${$('baudSel').value}` : t('hdr.noboard');
     $('btnConnect').disabled = on || !('serial' in navigator);
     $('btnDisconnect').disabled = !on;
@@ -1351,7 +1159,7 @@ wait 1600
     const box = $('presets'); box.innerHTML = '';
     for (const [name, v] of Object.entries(poses)) {
       const b = document.createElement('button');
-      b.className = 'btn'; b.textContent = name; b.title = v.join(',') + '  ' + t('pose.del');
+      b.className = 'db'; b.textContent = name; b.title = v.join(',') + '  ' + t('pose.del');
       b.onclick = ev => {
         if (ev.shiftKey) { delete poses[name]; savePoses(); return; }
         setPlay(false);
@@ -1465,7 +1273,10 @@ wait 1600
   $('btnSeqStop').onclick = () => { seqAbort = true; };
 
   /* ===== 카메라 조작 ===== */
-  document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => { if (HAS3D) setCam(CAM[b.dataset.cam]); });
+  const camBtns = [...document.querySelectorAll('[data-cam]')];
+  const markCam = name => camBtns.forEach(b => b.classList.toggle('on', b.dataset.cam === name));
+  camBtns.forEach(b => b.onclick = () => { if (HAS3D) { setCam(CAM[b.dataset.cam]); markCam(b.dataset.cam); } });
+  markCam('all');
   $('camZoom').oninput = e => { view.dist = clamp(12 / +e.target.value, 0.9, 80); };
   const sceneBox = $('sceneBox');
   sceneBox.addEventListener('wheel', e => { e.preventDefault(); view.dist *= Math.exp(e.deltaY * 0.0022); }, { passive: false });
@@ -1490,7 +1301,7 @@ wait 1600
     drag = null; sceneBox.classList.remove('dragging');
   });
   sceneBox.addEventListener('pointercancel', () => { drag = null; sceneBox.classList.remove('dragging'); });
-  sceneBox.addEventListener('dblclick', () => { if (HAS3D) setCam(CAM.all); });
+  sceneBox.addEventListener('dblclick', () => { if (HAS3D) { setCam(CAM.all); markCam('all'); } });
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') $('btnStop').click(); });
   $('btnConnect').onclick = connect;
@@ -1509,7 +1320,7 @@ wait 1600
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(relabel3d);
   } else {
     const el = document.createElement('div');
-    el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#7d89a6;padding:24px;text-align:center;font-weight:800';
+    el.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink3);padding:24px;text-align:center;font-weight:600';
     el.textContent = t('log.3dfail');
     cv.parentElement.appendChild(el);
     ['btnGrid', 'btnWire', 'btnAxes', 'btnShot'].forEach(id => { $(id).disabled = true; });
