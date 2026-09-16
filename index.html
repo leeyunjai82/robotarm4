@@ -369,12 +369,16 @@ wait 1600
   const calOf = ch => (ch >= 1 && ch <= 3) ? cal[ch - 1] : 0;       // ch = 1..4
   const hasCal = () => cal.some(v => v);
   const withCal = (ch, v) => clamp(Math.round(v + calOf(ch)), 0, 180);
+  // 실물 서보가 화면과 반대로 도는 축 — 로봇으로 나가는 각도만 뒤집는다 (슬라이더·3D 값은 그대로)
+  const FLIP = { 2: true, 3: true };
+  const toMotor   = (ch, v) => withCal(ch, FLIP[ch] ? 180 - clamp(Math.round(v), 0, 180) : v);
+  const fromMotor = (ch, v) => { const u = clamp(Math.round(v) - calOf(ch), 0, 180); return FLIP[ch] ? 180 - u : u; };
   function calOut(cmd) {        // 로봇으로 나가는 명령에만 오프셋 적용
     let x;
     if ((x = cmd.match(/^#m:(-?\d+),(-?\d+),(-?\d+),(-?\d+)(.*)$/)))
-      return `#m:${[1, 2, 3, 4].map(ch => withCal(ch, +x[ch])).join(',')}${x[5]}`;
+      return `#m:${[1, 2, 3, 4].map(ch => toMotor(ch, +x[ch])).join(',')}${x[5]}`;
     if ((x = cmd.match(/^#j:(\d+),(-?\d+)(.*)$/)))
-      return `#j:${x[1]},${withCal(+x[1], +x[2])}${x[3]}`;
+      return `#j:${x[1]},${toMotor(+x[1], +x[2])}${x[3]}`;
     return cmd;
   }
 
@@ -654,8 +658,8 @@ wait 1600
 
   const GRIP_K = 135 / 180;                          // 실물 집게: 180° 지령 = 예전 135° 만큼만 닫힘
   const YAW_OFFSET = 90;                              // 실물 회전(ch1) 기준 보정: 3D 에서 90° 가 예전 180° 방향을 향함
-  // 3D 회전 방향 보정: 실물과 반대로 보이는 축만 -1 (실물 확인 결과: ch1 O, ch2 반대, ch3 반대)
-  const DIR = { ch1: 1, ch2: -1, ch3: -1 };
+  // 3D 회전 방향 보정 (화면만). 실물 방향은 위의 FLIP 으로 맞춘다.
+  const DIR = { ch1: 1, ch2: 1, ch3: 1 };
   const gripGapMm = v => 45 - (v * GRIP_K / 180) * 30; // 0 = 열림 45mm, 180 = 약 22mm
 
   /* --- 카메라 --- */
@@ -885,7 +889,7 @@ wait 1600
     const fmt = d => Number.isInteger(d) ? String(d) : d.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
     const s = sortedKfs(), lines = [];
     s.forEach((k, i) => {
-      lines.push('m:' + k.joints.map((v, j) => withCal(j + 1, v)).join(','));   // 보정 포함 모터값
+      lines.push('m:' + k.joints.map((v, j) => toMotor(j + 1, v)).join(','));   // 보정·반전 포함 모터값
       if (i < s.length - 1) { const dt = s[i + 1].time - k.time; if (dt > 0) lines.push('sleep ' + fmt(dt)); }
     });
     download('motion.txt', new Blob([lines.join('\n') + '\n'], { type: 'text/plain' }));
@@ -912,7 +916,7 @@ wait 1600
           if (/^#?m:/.test(s)) {
             const n = s.replace(/^#?m:/, '').replace(/!$/, '').split(',').map(x => parseInt(x.trim(), 10));
             // 저장값은 보정 포함 → 슬라이더 값으로 되돌림
-            kfs.push({ id: kfs.length, time: Math.round(tt), joints: [0, 1, 2, 3].map(j => clamp((isNaN(n[j]) ? 90 : n[j]) - calOf(j + 1), 0, 180)) });
+            kfs.push({ id: kfs.length, time: Math.round(tt), joints: [0, 1, 2, 3].map(j => fromMotor(j + 1, isNaN(n[j]) ? 90 : n[j])) });
           } else if (/^sleep/i.test(s)) tt += parseFloat(s.replace(/sleep/i, '').trim()) || 0;
         }
         tl.kfs = kfs;
@@ -940,7 +944,7 @@ wait 1600
   function updateHud() {
     for (let i = 1; i <= 4; i++) {
       const v = +$('v' + i).value;
-      let s = angToUs(withCal(i, v)) + 'µs';
+      let s = angToUs(toMotor(i, v)) + 'µs';
       if (i === 4) s = Math.round(gripGapMm(v)) + 'mm ' + s;
       else if (calibMode) { const o = calOf(i); s = `(${o >= 0 ? '+' : ''}${o}) ` + s; }
       $('u' + i).textContent = s;
@@ -1030,7 +1034,7 @@ wait 1600
       if (/^(Moved|Stopped):/.test(line)) busy = false;
       const a = mm[1].split(',').map(Number);
       if (a.length === 4 && !tl.playing) a.forEach((v, i) => {
-        const s = clamp(v - calOf(i + 1), 0, 180);             // 로봇값(보정 포함) → 슬라이더 값
+        const s = fromMotor(i + 1, v);                        // 로봇값(보정·반전 포함) → 슬라이더 값
         const j = sim.joints[i]; j.cur = s; j.to = s; j.dur = 0; setSlider(i + 1, s);
       });
       const f = +mm[2];
