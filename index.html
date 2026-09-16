@@ -654,6 +654,7 @@ wait 1600
 
   const GRIP_K = 135 / 180;                          // 실물 집게: 180° 지령 = 예전 135° 만큼만 닫힘
   const YAW_OFFSET = 90;                              // 실물 회전(ch1) 기준 보정: 3D 에서 90° 가 예전 180° 방향을 향함
+  const YAW_SIGN = -1;                                // 실물 ch1 이 3D 와 반대로 돌아서 부호 반전 (+1 로 되돌릴 수 있음)
   const gripGapMm = v => 45 - (v * GRIP_K / 180) * 30; // 0 = 열림 45mm, 180 = 약 22mm
 
   /* --- 카메라 --- */
@@ -694,7 +695,7 @@ wait 1600
   function render3d() {
     if (!renderer) return;
     const [j1, j2, j3, j4] = sim.joints.map(j => j.cur);
-    parts.yaw.rotation.y = (j1 - 90 + YAW_OFFSET) * Math.PI / 180;   // 실물 기준: 90° 지령이 예전 180° 방향
+    parts.yaw.rotation.y = (YAW_SIGN * (j1 - 90) + YAW_OFFSET) * Math.PI / 180;   // 90° 기준 방향은 유지, 회전 방향은 실물에 맞춤
     parts.link1.rotation.z = -(j2 - 90) * Math.PI / 180;
     parts.link2.rotation.z = -(j3 - 90) * Math.PI / 180;
     const open = (1 - (j4 * GRIP_K) / 180) * 0.26 + 0.07;   // 실물은 180°에서도 다 안 닫힘 (GRIP_K)
