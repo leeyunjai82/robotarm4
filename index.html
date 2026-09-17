@@ -29,6 +29,7 @@
     </select>
   </label>
   <label class="fld"><input type="checkbox" id="autoRe" checked><span data-i18n="hdr.autore">자동 다시연결</span></label>
+  <label class="fld" data-i18n-title="hdr.safeTitle"><input type="checkbox" id="safeStart" checked><span data-i18n="hdr.safe">안전 시작</span></label>
   <button class="db go" id="btnConnect"><i class="fa-solid fa-plug"></i><span data-i18n="hdr.connect">로봇 연결</span></button>
   <button class="db" id="btnDisconnect" disabled><i class="fa-solid fa-power-off"></i><span data-i18n="hdr.disconnect">연결 끊기</span></button>
   <button class="db warn" id="btnStop"><i class="fa-solid fa-hand"></i><span data-i18n="hdr.stop">멈춰! (ESC)</span></button>
@@ -62,6 +63,7 @@
       <div class="row">
         <button class="db go grow" id="btnArmMove"><i class="fa-solid fa-arrow-right"></i><span data-i18n="arm.move">이 자세로 가기</span></button>
         <button class="db" id="btnArmHome"><i class="fa-solid fa-house"></i><span data-i18n="arm.home">집으로</span></button>
+        <button class="db" id="btnSlowHome" data-i18n-title="arm.slowHomeTitle"><i class="fa-solid fa-gauge-high"></i><span data-i18n="arm.slowHome">천천히 가운데로</span></button>
         <button class="db" id="btnReset" data-i18n-title="arm.resetTitle"><i class="fa-solid fa-rotate-left"></i><span data-i18n="arm.reset">처음 자세</span></button>
       </div>
       <div class="row">
@@ -217,6 +219,7 @@ wait 1600
 (() => {
   /* ===================== 설정 ===================== */
   const DEFAULT_JOINT_NAMES = ['joint1_yaw', 'joint2_shoulder', 'joint3_elbow', 'gripper_joint']; // pose.json 호환
+  const SLOW_DPS = 30;               // 안전 시작 · 천천히 가운데로 에서 쓰는 느린 속도 (deg/s)
   const SEND_INTERVAL = 200;         // ms, 실시간/타임라인 #m 전송 최소 간격 (값 바뀔 때만)
   const CAL_KEY = 'armConveyorCal';
   const PKEY = 'armConveyorPoses';
@@ -239,12 +242,14 @@ wait 1600
       'app.title': 'Factory Lab — 로봇 공장 조종실', 'app.sub': '로봇팔 4채널 + 컨베이어 2채널',
       'hdr.noboard': '로봇 연결 안 됨', 'hdr.idle': '쉬는 중', 'hdr.working': '일하는 중', 'hdr.released': '힘 빼기 상태', 'hdr.playing': '동작 재생 중',
       'hdr.baud': '통신속도', 'hdr.autore': '자동 다시연결', 'hdr.connect': '로봇 연결', 'hdr.disconnect': '연결 끊기', 'hdr.stop': '멈춰! (ESC)',
+      'hdr.safe': '안전 시작', 'hdr.safeTitle': '연결하면 바로 힘을 빼고 속도를 느리게 해요',
       'hdr.lang': 'English',
       'warn.serial': '이 브라우저는 로봇 연결(Web Serial)을 지원하지 않아요. 3D 보기만 가능해요. 진짜 로봇은 Chrome / Edge 에서 움직여요.',
       'arm.title': '로봇팔 (ch1-4)', 'arm.live': '실시간',
       'j1': '회전', 'j2': '어깨', 'j3': '팔꿈치', 'j4': '집게',
       'arm.note': '−/+ 는 1°씩, 꾹 누르면 계속 움직여요 · 집게 0=활짝(45mm) 180=꽉(약 22mm)',
       'arm.move': '이 자세로 가기', 'arm.home': '집으로', 'arm.reset': '처음 자세', 'arm.resetTitle': 'ch1-3=90, 집게=0',
+      'arm.slowHome': '천천히 가운데로', 'arm.slowHomeTitle': '집게 → 팔꿈치 → 어깨 → 회전 순서로 한 축씩 천천히 가운데(90°)로 갑니다',
       'arm.off': '힘 빼기', 'arm.on': '힘 주기',
       'pose.title': '자세 저장', 'pose.ph': '자세 이름', 'pose.save': '지금 자세 저장',
       'pose.note': 'Shift+클릭 = 지우기 · 순서 프로그램에서 "pose 이름" 으로 불러요',
@@ -267,6 +272,9 @@ wait 1600
       'port.generic': '직렬 포트', 'log.viewOnly': '(3D만)', 'log.preCal': '(보정 전 {cmd})',
       'log.ready': '준비 완료! 로봇이 없어도 3D 로 미리 볼 수 있어요.',
       'log.connected': '로봇 연결됨 · {info} · {baud}baud', 'log.connFail': '연결 실패: {msg}',
+      'log.safeStart': '안전 시작: 힘을 빼고 속도를 느리게 했어요. 손으로 자세를 잡은 뒤 움직이세요.',
+      'log.slowHomeRun': '천천히 가운데로 — 한 축씩 움직여요', 'log.slowHomeDone': '가운데 자세 완료',
+      'log.slowHomeBusy': '이미 가는 중이에요',
       'log.autoRe': '[자동 다시연결] {info}', 'log.autoReFail': '자동 다시연결 실패: {msg}',
       'log.disconnected': '연결이 끊어졌어요', 'log.detached': '로봇이 빠졌어요', 'log.rxErr': '받기 오류: {msg}', 'log.txFail': '보내기 실패: {msg}',
       'log.seqEmpty': '순서가 비어 있어요', 'log.seqStart': '순서 시작!', 'log.seqStopped': '순서 멈춤', 'log.seqDone': '순서 끝! 잘했어요',
@@ -281,12 +289,14 @@ wait 1600
       'app.title': 'Factory Lab — Robot Factory', 'app.sub': 'Arm 4ch + Conveyor 2ch',
       'hdr.noboard': 'No robot', 'hdr.idle': 'Resting', 'hdr.working': 'Working', 'hdr.released': 'Relaxed (torque off)', 'hdr.playing': 'Playing motion',
       'hdr.baud': 'Baud', 'hdr.autore': 'Auto reconnect', 'hdr.connect': 'Connect', 'hdr.disconnect': 'Disconnect', 'hdr.stop': 'STOP (ESC)',
+      'hdr.safe': 'Safe start', 'hdr.safeTitle': 'On connect, relax the arm and slow it down',
       'hdr.lang': '한국어',
       'warn.serial': "This browser can't talk to the robot (no Web Serial). You can still use the 3D view. Use Chrome / Edge to drive the real robot.",
       'arm.title': 'Robot Arm (ch1-4)', 'arm.live': 'LIVE',
       'j1': 'Turn', 'j2': 'Shoulder', 'j3': 'Elbow', 'j4': 'Gripper',
       'arm.note': '−/+ moves 1°, hold to keep going · Gripper 0=wide open(45mm) 180=closed(about 22mm)',
       'arm.move': 'Go to this pose', 'arm.home': 'Home', 'arm.reset': 'Start pose', 'arm.resetTitle': 'ch1-3=90, gripper=0',
+      'arm.slowHome': 'Slow to centre', 'arm.slowHomeTitle': 'Moves one axis at a time to 90 deg: gripper, elbow, shoulder, base',
       'arm.off': 'Relax', 'arm.on': 'Hold',
       'pose.title': 'Saved poses', 'pose.ph': 'pose name', 'pose.save': 'Save this pose',
       'pose.note': 'Shift+click = delete · call it in the step program with "pose name"',
@@ -309,6 +319,9 @@ wait 1600
       'port.generic': 'Serial port', 'log.viewOnly': '(3D only)', 'log.preCal': '(before offset {cmd})',
       'log.ready': 'Ready! You can preview in 3D even without a robot.',
       'log.connected': 'Robot connected · {info} · {baud}baud', 'log.connFail': 'Connect failed: {msg}',
+      'log.safeStart': 'Safe start: the arm is relaxed and slowed down. Pose it by hand, then move it.',
+      'log.slowHomeRun': 'Going slowly to centre, one axis at a time', 'log.slowHomeDone': 'Centre pose reached',
+      'log.slowHomeBusy': 'Already on the way',
       'log.autoRe': '[auto reconnect] {info}', 'log.autoReFail': 'Auto reconnect failed: {msg}',
       'log.disconnected': 'Disconnected', 'log.detached': 'Robot unplugged', 'log.rxErr': 'Receive error: {msg}', 'log.txFail': 'Send failed: {msg}',
       'log.seqEmpty': 'The program is empty', 'log.seqStart': 'Program started!', 'log.seqStopped': 'Program stopped', 'log.seqDone': 'Program finished! Nice job',
@@ -985,6 +998,14 @@ wait 1600
     readLoop();
     setTimeout(() => send('#ver!', { local: false }), 300);
     setTimeout(() => send('#pos!', { local: false }), 500);
+    // 안전 시작: 보드가 켜질 때 서보가 가운데로 튀는 것 자체는 펌웨어 동작이라 막을 수 없다.
+    // 대신 연결되자마자 힘을 빼고 속도를 느리게 해서, 그 뒤로는 손으로 자세를 잡을 수 있게 한다.
+    if ($('safeStart').checked) setTimeout(() => {
+      send('#off!');
+      for (const ch of [1, 2, 3]) send(`#s:${ch},${SLOW_DPS}!`);
+      send(`#s:4,${SLOW_DPS * 2}!`);
+      log(t('log.safeStart'), 'sys');
+    }, 700);
   }
   async function connect() {
     try { await openPort(await navigator.serial.requestPort()); }
@@ -1164,6 +1185,32 @@ wait 1600
   };
   $('btnSpeed').onclick = () => send(`#s:${$('spdJoint').value},${$('spdVal').value}!`);
   $('easing').onchange  = e => send(`#e:${e.target.checked ? 1 : 0}!`);
+  // 한 축씩 천천히 가운데로. 순서: 집게 → 팔꿈치 → 어깨 → 회전
+  // (회전을 마지막에 둬서 팔이 펴진 채로 옆으로 휩쓰는 것을 피한다)
+  let slowHoming = false;
+  async function slowHome() {
+    if (slowHoming || seqRunning) { log(t('log.slowHomeBusy'), 'err'); return; }
+    slowHoming = true; seqAbort = false;
+    $('btnSlowHome').disabled = true;
+    setPlay(false);
+    log(t('log.slowHomeRun'), 'sys');
+    try {
+      for (const ch of [1, 2, 3]) await send(`#s:${ch},${SLOW_DPS}!`);
+      await send(`#s:4,${SLOW_DPS * 2}!`);
+      for (const [ch, target] of [[4, 0], [3, 90], [2, 90], [1, 90]]) {
+        if (seqAbort) break;
+        setSlider(ch, target);
+        await send(`#j:${ch},${target}!`);
+        await waitDone(12000);
+      }
+    } finally {
+      slowHoming = false;
+      $('btnSlowHome').disabled = false;
+      log(seqAbort ? t('log.seqStopped') : t('log.slowHomeDone'), 'sys');
+    }
+  }
+  $('btnSlowHome').onclick = slowHome;
+
   $('btnOff').onclick = () => { setPlay(false); send('#off!'); };
   $('btnOn').onclick  = () => send('#on!');
   $('liveArm').onchange = e => { if (e.target.checked) sendArmNow(true); };
