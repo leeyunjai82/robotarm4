@@ -725,8 +725,10 @@ wait 1600
     // 차단봉: 0 = 벨트 가로질러 차단(+z 방향), +90 = 하류(+x)로 눕혀 개방.
     const rel = sim.joints[4].cur - 90;
     parts.flag.rotation.y = clamp(rel - 90, -200, 20) * Math.PI / 180;
-    beltTex.offset.x -= sim.roller * 0.0016;   // 화면 기준: 앞으로(+) = 오른쪽으로 흐름
-    parts.rollers.forEach(r => r.rotation.y += sim.roller * 0.004);
+    // 화면 기준: 앞으로(+) = 오른쪽으로 흐름. 계수는 화면 전용 — 실물 벨트 속도(#m1)와는 무관하다.
+    // 같은 #m1 값에서 3D 쪽이 실물보다 빨라 보여 절반으로 낮췄다.
+    beltTex.offset.x -= sim.roller * 0.0008;
+    parts.rollers.forEach(r => r.rotation.y += sim.roller * 0.002);
     updateCamera();
     renderer.render(scene, camera);
   }
